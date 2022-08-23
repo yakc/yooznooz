@@ -1,7 +1,4 @@
-import {
-  default as NNTP,
-  OverviewFieldIsFullDict,
-} from "https://raw.githubusercontent.com/yakc/deno-nntp/main/nntp.ts";
+import { default as NNTP, OverviewFieldIsFullDict } from "nntp";
 import {
   composeArticle,
   NewsArticleID,

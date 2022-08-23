@@ -1,4 +1,4 @@
-import { NNTPOptions } from "https://raw.githubusercontent.com/yakc/deno-nntp/main/nntp.ts";
+import { NNTPOptions } from "nntp";
 import { Article, From } from "./usenet.ts";
 
 /** Stateless async back-end API; e.g. REST or in-process */
@@ -70,6 +70,10 @@ export function rangeValidate(range: NewsRange, active: NewsGroupInfo): string {
 
 export type NewsArticleID = string;
 
+export function unquoteName(from: From) {
+  return (/^"?(.*?)"?$/.exec(from.name) as string[])[1];
+}
+
 export interface NewsOverview {
   readonly id: NewsArticleID;
   from: From;
@@ -102,7 +106,7 @@ export function composeArticle(
   };
 }
 
-interface Sub {
+export interface NewsSubscription {
   alias: string;
   group: string;
   lastNumber?: number;
@@ -112,7 +116,7 @@ interface Sub {
 export default class NewsModel {
   #servers: { [alias: string]: NewsOrigin } = {};
   #groups: { [alias: string]: Promise<NewsGroupInfo[]> } = {};
-  #subs: Sub[] = [];
+  #subs: NewsSubscription[] = [];
 
   constructor(readonly back: NewsBack) {}
 

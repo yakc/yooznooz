@@ -1,7 +1,4 @@
-import {
-  MessageLines,
-  MessageOverviewRaw,
-} from "https://raw.githubusercontent.com/yakc/deno-nntp/main/nntp.ts";
+import { MessageLines, MessageOverviewRaw } from "nntp";
 
 const identity = <T>(x: T) => x;
 const idParse = (line: string) => (/<[^\s<>]+@[^\s>]+>/.exec(line) || [])[0];

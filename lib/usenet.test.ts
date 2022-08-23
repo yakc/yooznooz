@@ -1,5 +1,5 @@
 import { parseHeaders } from "./usenet.ts";
-import NNTP from "https://raw.githubusercontent.com/yakc/deno-nntp/main/nntp.ts";
+import NNTP from "nntp";
 import { parse } from "https://deno.land/std@0.148.0/flags/mod.ts";
 import {
   assert,
