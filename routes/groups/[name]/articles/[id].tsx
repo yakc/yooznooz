@@ -1,18 +1,21 @@
 /** @jsx h */
-import { h } from "preact";
+/** @jsxFrag Fragment */
+import { Fragment, h } from "preact";
 import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 import { tw } from "@twind";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import {
   NewsGroup,
-  NewsGroupArticle,
+  NewsImage,
   NewsOrigin,
   unquoteName,
+  unquoteString,
 } from "yooznooz/lib/model.ts";
-import { default as newsBack } from "yooznooz/lib/proc_back.ts";
+import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
+import { WrappedArticle } from "yooznooz/lib/ware.ts";
 
 export interface ArticleProps {
-  article: NewsGroupArticle;
+  article: WrappedArticle;
 }
 
 export const handler: Handlers = {
@@ -25,11 +28,11 @@ export const handler: Handlers = {
     const origin: NewsOrigin = { host: my.origins[0].host };
     const group: NewsGroup = { origin, name: ctx.params.name };
     const id = decodeURIComponent(ctx.params.id);
-    const generator = newsBack.articles(origin, [[group, id]]);
+    const generator = wrappedBack.articles(origin, [[group, id]]);
     const start = Date.now();
     let timer = 0;
     const article = await Promise.race([
-      new Promise<NewsGroupArticle | null>((resolve) =>
+      new Promise<WrappedArticle | null>((resolve) =>
         timer = setTimeout(() => {
           console.log(
             `waited too long for article in ${group.name} from ${origin.host}`,
@@ -37,7 +40,7 @@ export const handler: Handlers = {
           resolve(null);
         }, 7500)
       ),
-      generator.next().then((i) => i.value as NewsGroupArticle)
+      generator.next().then((i) => i.value as WrappedArticle)
         .then((a) => {
           console.log(
             `resolve (${
@@ -66,20 +69,30 @@ export const handler: Handlers = {
   },
 };
 
-export default function Article(props: PageProps<NewsGroupArticle>) {
+export default function Article(props: PageProps<WrappedArticle>) {
+  const images = (props.data.ext.img || []) as NewsImage[];
   const lbl = tw`col-span-1 text-right`;
   const val = tw`col-start-2 col-span-5`;
   return (
-    <form class={tw`container grid gap-4 px-2`}>
-      <label class={lbl}>Date</label>
-      <span class={val}>{props.data.date.toLocaleString()}</span>
-      <label class={lbl}>From</label>
-      <span class={val}>
-        {unquoteName(props.data.from)} &lt;{props.data.from.email}&gt;
-      </span>
-      <label class={lbl}>Subject</label>
-      <span class={val}>{props.data.subject}</span>
-      <pre class={tw`col-span-6 whitespace-pre-wrap`}>{props.data.body}</pre>
-    </form>
+    <>
+      <form class={tw`container grid gap-4 px-2`}>
+        <label class={lbl}>Date</label>
+        <span class={val}>{props.data.date.toLocaleString()}</span>
+        <label class={lbl}>From</label>
+        <span class={val}>
+          {unquoteName(props.data.from)} &lt;{props.data.from.email}&gt;
+        </span>
+        <label class={lbl}>Subject</label>
+        <span class={val}>{props.data.subject}</span>
+        <pre class={tw`col-span-6 whitespace-pre-wrap`}>{props.data.body}</pre>
+      </form>
+      {images.map((m) => (
+        <div class={tw`py-2 px-2`}>
+          <hr />
+          <p>{unquoteString(m.name)}</p>
+          <img src={`data:${m.contentType};${m.contentEncoding},${m.data}`} />
+        </div>
+      ))}
+    </>
   );
 }

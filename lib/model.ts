@@ -70,8 +70,15 @@ export function rangeValidate(range: NewsRange, active: NewsGroupInfo): string {
 
 export type NewsArticleID = string;
 
+export function unquoteString(s: string | undefined) {
+  if (!s) {
+    return "";
+  }
+  return (/^"?(.*?)"?$/.exec(s) as string[])[1];
+}
+
 export function unquoteName(from: From) {
-  return (/^"?(.*?)"?$/.exec(from.name) as string[])[1];
+  return unquoteString(from.name);
 }
 
 export interface NewsOverview {
@@ -104,6 +111,13 @@ export function composeArticle(
     references,
     body: article.body,
   };
+}
+
+export interface NewsImage {
+  name?: string;
+  contentType: string;
+  contentEncoding: string;
+  data: string;
 }
 
 export interface NewsSubscription {

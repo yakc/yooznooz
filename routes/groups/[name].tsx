@@ -1,6 +1,7 @@
 /** @jsx h */
 import { h } from "preact";
 import { HandlerContext, PageProps } from "$fresh/server.ts";
+import { tw } from "@twind";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import {
   NewsGroup,
@@ -8,7 +9,8 @@ import {
   NewsOverview,
   unquoteName,
 } from "yooznooz/lib/model.ts";
-import { default as newsBack } from "yooznooz/lib/proc_back.ts";
+import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
+import { WrappedOverview } from "yooznooz/lib/ware.ts";
 
 export interface MessagesProps {
   group: NewsGroup;
@@ -29,7 +31,7 @@ export async function handler(
   const start = Date.now();
   let timer = 0;
   const overview = await Promise.race([
-    new Promise<NewsOverview[]>((resolve) =>
+    new Promise<WrappedOverview[]>((resolve) =>
       timer = setTimeout(() => {
         console.log(
           `waited too long for messages in ${group.name} from ${origin.host}`,
@@ -37,14 +39,14 @@ export async function handler(
         resolve([]);
       }, 7500)
     ),
-    newsBack.overview(group, { slice: -100 }).then((o) => {
+    wrappedBack.overview(group, { slice: -100 }).then((o) => {
       console.log(
         `resolve (${
           Date.now() - start
         } ms) overview for ${group.name} from origin ${origin.host}: ${o.length}`,
       );
       clearTimeout(timer);
-      return o;
+      return o.sort((a, b) => b.date.getTime() - a.date.getTime()); // Latest first
     }).catch((x) => {
       console.log(
         `reject  (${
@@ -80,7 +82,7 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
               </a>
             </td>
             <td>{unquoteName(o.from)}</td>
-            <td>{o.date.toLocaleString()}</td>
+            <td class={tw`min-w-fit`}>{o.date.toLocaleString()}</td>
           </tr>
         ))}
       </table>
