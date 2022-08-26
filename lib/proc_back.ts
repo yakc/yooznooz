@@ -17,20 +17,34 @@ import { parseArticle, parseOverview } from "./usenet.ts";
 type Resolver = (value: void | PromiseLike<void>) => void;
 
 class Connection {
+  #connected = false;
   lock?: Promise<void>;
   overviewFormat: OverviewFieldIsFullDict = {};
 
   constructor(readonly nntp: NNTP) {}
 
-  async init() {
+  async #init() {
     await this.nntp.connectAndAuthenticate();
+    this.#connected = true;
     this.overviewFormat = await this.nntp.overviewFormat();
+    setTimeout(async () => {
+      const give = await this.take();
+      try {
+        await this.nntp.disconnect();
+        this.#connected = false;
+      } finally {
+        give();
+      }
+    }, 55 * 1000);
   }
 
   async take(): Promise<Resolver> {
     let lock;
     while ((lock = this.lock)) {
       await lock;
+    }
+    if (!this.#connected) {
+      await this.#init();
     }
     let give: unknown;
     this.lock = new Promise((resolve) => give = resolve).then(() => {
@@ -54,7 +68,6 @@ class ProcBack implements NewsBack {
       conn = new Connection(new NNTP(origin));
       const give = await conn.take(); // take without waiting
       this.#connections[alias] = conn; // then make it known
-      await conn.init();
       return [conn.nntp, give, conn.overviewFormat];
     }
   }
