@@ -1,5 +1,5 @@
 import { NewsImage } from "../model.ts";
-import { Middleware, WrappedArticle } from "../ware.ts";
+import { ExtArticle, Middleware } from "../ware.ts";
 
 interface Header {
   name: string;
@@ -39,7 +39,7 @@ function parseHeader(line: string): Header {
 }
 
 const ware: Middleware = {
-  article(a: WrappedArticle) {
+  article(a: ExtArticle) {
     if (!a.body.startsWith("This is a multi-part message in MIME format")) {
       return;
     }

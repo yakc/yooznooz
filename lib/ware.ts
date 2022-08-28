@@ -3,6 +3,7 @@ import {
   NewsBack,
   NewsGroup,
   NewsGroupArticle,
+  NewsGroupInfo,
   NewsOrigin,
   NewsOverview,
   NewsRange,
@@ -14,17 +15,32 @@ export interface WareExt {
   ext: NewsExt;
 }
 
-export type WrappedOverview = NewsOverview & WareExt;
+export type ExtOverview = NewsOverview & WareExt;
 
-export type WrappedArticle = NewsGroupArticle & WareExt;
+export type ExtArticle = NewsGroupArticle & WareExt;
 
-export interface Middleware {
-  overview?: (overview: WrappedOverview) => void;
-  article?: (article: WrappedArticle) => void;
+export interface Coded {
+  code: string;
 }
 
-const overviewWare: ((overview: WrappedOverview) => void)[] = [];
-const articleWare: ((article: WrappedArticle) => void)[] = [];
+export interface Wrapped<T> {
+  value: T;
+  err?: Error | Coded;
+}
+
+export type WrappedGroups = Wrapped<NewsGroupInfo[]>;
+
+export type WrappedOverview = Wrapped<ExtOverview[]>;
+
+export type WrappedArticle = Wrapped<ExtArticle | null>;
+
+export interface Middleware {
+  overview?: (overview: ExtOverview) => void;
+  article?: (article: ExtArticle) => void;
+}
+
+const overviewWare: ((overview: ExtOverview) => void)[] = [];
+const articleWare: ((article: ExtArticle) => void)[] = [];
 
 export function register(ware: Middleware) {
   if (ware.overview) {
@@ -35,8 +51,8 @@ export function register(ware: Middleware) {
   }
 }
 
-export function wrapOverview(overview: NewsOverview): WrappedOverview {
-  const wrap = overview as WrappedOverview;
+function extOverview(overview: NewsOverview): ExtOverview {
+  const wrap = overview as ExtOverview;
   wrap.ext = {};
   for (const w of overviewWare) {
     w(wrap);
@@ -44,8 +60,8 @@ export function wrapOverview(overview: NewsOverview): WrappedOverview {
   return wrap;
 }
 
-export function wrapArticle(article: NewsGroupArticle): WrappedArticle {
-  const wrap = article as WrappedArticle;
+function extArticle(article: NewsGroupArticle): ExtArticle {
+  const wrap = article as ExtArticle;
   wrap.ext = {};
   for (const w of articleWare) {
     w(wrap);
@@ -53,23 +69,97 @@ export function wrapArticle(article: NewsGroupArticle): WrappedArticle {
   return wrap;
 }
 
+const waitMillis = 7500;
+const codedTimeout = Object.freeze({
+  code: "TIMEOUT",
+  waitMillis,
+  toString: function () {
+    return JSON.stringify(this);
+  },
+});
+
+function race<T>(
+  promise: Promise<T>,
+  message: (result?: T) => string,
+  fail: T,
+): Promise<Wrapped<T>> {
+  const start = Date.now();
+  let timer = 0; //TODO do unfulfilled promises leak?
+  return Promise.race([
+    new Promise<Wrapped<T>>((resolve) =>
+      timer = setTimeout(() => {
+        console.log(`waiting too long (${waitMillis} ms) for`, message());
+        resolve({ value: fail, err: codedTimeout });
+      }, waitMillis)
+    ),
+    promise.then((t) => {
+      console.log(`resolve (${Date.now() - start} ms)`, message(t));
+      clearTimeout(timer);
+      return { value: t };
+    }).catch((x) => {
+      console.log(`reject  (${Date.now() - start} ms)`, message(), String(x));
+      clearTimeout(timer);
+      return { value: fail, err: x };
+    }),
+  ]);
+}
+
 export class WrappedBack {
   constructor(readonly newsBack: NewsBack) {}
 
-  // groups(origin: NewsOrigin): Promise<NewsGroupInfo[]>;
+  groups(origin: NewsOrigin, control?: boolean): Promise<WrappedGroups> {
+    return race(
+      this.newsBack.groups(origin),
+      (g) =>
+        g
+          ? `groups for origin ${origin.host}: ${g.length}`
+          : `groups for origin ${origin.host}`,
+      [],
+    ).then(({ value, err }) => ({
+      value: control
+        ? value
+        : value.filter((g) => !g.name.startsWith("control.")),
+      err,
+    }));
+  }
 
-  overview(group: NewsGroup, range: NewsRange): Promise<WrappedOverview[]> {
-    return this.newsBack.overview(group, range).then((o) =>
-      o.map(wrapOverview)
-    );
+  overview(group: NewsGroup, range: NewsRange): Promise<WrappedOverview> {
+    return race(
+      this.newsBack.overview(group, range),
+      (o) =>
+        o
+          ? `overview for ${group.name} from origin ${group.origin.host}: ${o.length}`
+          : `overview for ${group.name} from origin ${group.origin.host}`,
+      [],
+    ).then(({ value, err }) => ({
+      value: value.map(extOverview),
+      err,
+    }));
+  }
+
+  article(
+    origin: NewsOrigin,
+    group: NewsGroup,
+    id: NewsArticleID,
+  ): Promise<WrappedArticle> {
+    const generator = this.articles(origin, [[group, id]]);
+    return race(
+      generator.next().then((i) => i.value),
+      (a) =>
+        a
+          ? `article ${id} in ${group.name} from origin ${origin.host}: ${a
+            ?.body?.length}`
+          : `article ${id} in ${group.name} from origin ${origin.host}`,
+      null,
+    ).finally(() => generator.return(undefined));
   }
 
   async *articles(
     origin: NewsOrigin,
     articles: Iterable<[NewsGroup, NewsArticleID]>,
-  ): AsyncGenerator<WrappedArticle> {
+  ): AsyncGenerator<ExtArticle> {
     for await (const a of this.newsBack.articles(origin, articles)) {
-      yield wrapArticle(a);
+      yield extArticle(a);
     }
   }
 }

@@ -1,16 +1,18 @@
 import { HandlerContext } from "$fresh/server.ts";
-import { default as newsBack } from "yooznooz/lib/proc_back.ts";
+import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
 
 export const handler = async (
   _req: Request,
   ctx: HandlerContext,
 ): Promise<Response> => {
   const host = ctx.params.host;
-  console.log("host", host);
-  const groups = await newsBack.groups({ host });
+  const groups = await wrappedBack.groups({ host });
+  if (groups.err) {
+    return new Response(JSON.stringify({ error: groups.err }), { status: 400 });
+  }
   const body = {
     kind: "Collection#Group",
-    items: groups.map(({ name, high, low, count }) => ({
+    items: groups.value.map(({ name, high, low, count }) => ({
       name,
       high,
       low,

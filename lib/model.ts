@@ -36,6 +36,9 @@ export interface NewsGroupInfo extends NewsGroup {
   posting?: boolean;
 }
 
+export const groupComparator = (a: NewsGroup, b: NewsGroup) =>
+  a.name.localeCompare(b.name);
+
 export interface NewsRange {
   low?: number;
   high?: number;

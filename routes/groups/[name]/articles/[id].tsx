@@ -12,7 +12,7 @@ import {
   whoFrom,
 } from "yooznooz/lib/model.ts";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
-import { NewsExt, WareExt, WrappedArticle } from "yooznooz/lib/ware.ts";
+import { ExtArticle, NewsExt, WrappedArticle } from "yooznooz/lib/ware.ts";
 
 export interface ArticleProps {
   article: WrappedArticle;
@@ -28,39 +28,7 @@ export const handler: Handlers = {
     const origin: NewsOrigin = { host: my.origins[0].host };
     const group: NewsGroup = { origin, name: ctx.params.name };
     const id = decodeURIComponent(ctx.params.id);
-    const generator = wrappedBack.articles(origin, [[group, id]]);
-    const start = Date.now();
-    let timer = 0;
-    const article = await Promise.race([
-      new Promise<WrappedArticle | null>((resolve) =>
-        timer = setTimeout(() => {
-          console.log(
-            `waited too long for article in ${group.name} from ${origin.host}`,
-          );
-          resolve(null);
-        }, 7500)
-      ),
-      generator.next().then((i) => i.value as WrappedArticle)
-        .then((a) => {
-          console.log(
-            `resolve (${
-              Date.now() - start
-            } ms) article in ${group.name} from origin ${origin.host}: ${a?.body
-              ?.length}`,
-          );
-          clearTimeout(timer);
-          return a;
-        }).catch((x) => {
-          console.log(
-            `reject  (${
-              Date.now() - start
-            } ms) article in ${group.name} from origin ${origin.host}`,
-            String(x),
-          );
-          clearTimeout(timer);
-          return null;
-        }).finally(() => generator.return(undefined)),
-    ]);
+    const article = (await wrappedBack.article(origin, group, id)).value;
     if (!article) {
       return new Response(null, { status: 429 });
     }
@@ -82,7 +50,7 @@ function extDescription(ext: NewsExt) {
   return "";
 }
 
-export default function Article(props: PageProps<WrappedArticle>) {
+export default function Article(props: PageProps<ExtArticle>) {
   const images = (props.data.ext.img || []) as NewsImage[];
   const lbl = tw`col-span-1 text-right`;
   const val = tw`col-start-2 col-span-5`;

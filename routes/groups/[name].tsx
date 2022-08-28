@@ -28,36 +28,8 @@ export async function handler(
   }
   const origin: NewsOrigin = { host: my.origins[0].host };
   const group: NewsGroup = { origin, name: ctx.params.name };
-  const start = Date.now();
-  let timer = 0;
-  const overview = await Promise.race([
-    new Promise<WrappedOverview[]>((resolve) =>
-      timer = setTimeout(() => {
-        console.log(
-          `waited too long for messages in ${group.name} from ${origin.host}`,
-        );
-        resolve([]);
-      }, 7500)
-    ),
-    wrappedBack.overview(group, { slice: -100 }).then((o) => {
-      console.log(
-        `resolve (${
-          Date.now() - start
-        } ms) overview for ${group.name} from origin ${origin.host}: ${o.length}`,
-      );
-      clearTimeout(timer);
-      return o.sort((a, b) => b.date.getTime() - a.date.getTime()); // Latest first
-    }).catch((x) => {
-      console.log(
-        `reject  (${
-          Date.now() - start
-        } ms) overview for ${group.name} from origin ${origin.host}`,
-        String(x),
-      );
-      clearTimeout(timer);
-      return [];
-    }),
-  ]);
+  const overview = (await wrappedBack.overview(group, { slice: -100 })).value
+    .sort((a, b) => b.date.getTime() - a.date.getTime()); // Latest first
   const data: MessagesProps = {
     group,
     overview,

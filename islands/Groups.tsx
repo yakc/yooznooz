@@ -4,6 +4,7 @@ import { Fragment, h } from "preact";
 import { useState } from "preact/hooks";
 import { tw } from "@twind";
 import {
+  groupComparator,
   NewsGroupInfo,
   NewsOrigin,
   NewsSubscription,
@@ -17,8 +18,24 @@ export interface GroupsProps {
   subs: NewsSubscription[];
 }
 
-async function fetchGroups(origin: NewsOrigin) {
-  await fetch("/api/servers");
+function fetchGroups(origin: NewsOrigin): Promise<NewsGroupInfo[]> {
+  return fetch(`/api/servers/${origin.host}`)
+    .then((res) => Promise.all([res.status, res.json()]))
+    .then(([status, json]) => {
+      if (status !== 200) {
+        throw json.error?.code || "bad host name";
+      }
+      return json;
+    }).then((json) =>
+      (json.items as NewsGroupInfo[])
+        .map<NewsGroupInfo>(({ name, high, low, count }) => ({
+          origin,
+          name,
+          high,
+          low,
+          count,
+        }))
+    );
 }
 
 const nf = new Intl.NumberFormat();
@@ -49,11 +66,10 @@ function OpButton(props: OpProps) {
 }
 
 export default function Groups(props: GroupsProps) {
-  const [counter, setCounter] = useState(0);
-  const [origins] = useState(props.origins);
+  const [origins, setOrigins] = useState(props.origins);
   const [addHost, setAddHost] = useState("");
   const [addError, setAddError] = useState("");
-  const [groups] = useState(props.groups);
+  const [groups, setGroups] = useState(props.groups);
   const [subs] = useState(props.subs);
   const tbl = tw`mx-2`;
   const thd = tw`border(dotted b-2)`;
@@ -104,9 +120,13 @@ export default function Groups(props: GroupsProps) {
                   op="&minus;"
                   text="Del"
                   onClick={(e) => {
-                    setCounter(counter + 13);
-                    origins.splice(i, 1);
+                    const deleted = origins.splice(i, 1)[0];
                     document.cookie = MyCookies.origins(origins);
+                    setGroups(
+                      groups.filter((g) =>
+                        originAlias(g.origin) !== originAlias(deleted)
+                      ),
+                    );
                   }}
                 />
               </td>
@@ -147,12 +167,18 @@ export default function Groups(props: GroupsProps) {
                     return;
                   }
                   const addOrigin = { host: addHost };
-                  origins.push(addOrigin);
-                  fetchGroups(addOrigin);
-                  document.cookie = MyCookies.origins(origins);
+                  const index = origins.push(addOrigin) - 1;
                   setAddHost("");
-                  // setOrigins(origins)
-                  setCounter(counter + 7);
+                  fetchGroups(addOrigin).then((g) =>
+                    groups.concat(g).sort(groupComparator)
+                  ).then(setGroups).then(() => {
+                    document.cookie = MyCookies.origins(origins);
+                    setOrigins(origins);
+                  }).catch((x) => {
+                    origins.splice(index, 1);
+                    setAddHost(addHost);
+                    setAddError(String(x));
+                  });
                 }}
               />
             </td>
