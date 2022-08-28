@@ -8,8 +8,10 @@ import {
   NewsRange,
 } from "./model.ts";
 
+export type NewsExt = Record<string, unknown>;
+
 export interface WareExt {
-  ext: Record<string, unknown>;
+  ext: NewsExt;
 }
 
 export type WrappedOverview = NewsOverview & WareExt;

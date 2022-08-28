@@ -7,7 +7,7 @@ import {
   NewsGroup,
   NewsOrigin,
   NewsOverview,
-  unquoteName,
+  whoFrom,
 } from "yooznooz/lib/model.ts";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
 import { WrappedOverview } from "yooznooz/lib/ware.ts";
@@ -81,8 +81,8 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
                 {o.subject}
               </a>
             </td>
-            <td>{unquoteName(o.from)}</td>
-            <td class={tw`min-w-fit`}>{o.date.toLocaleString()}</td>
+            <td class={tw`pl-2`}>{whoFrom(o.from)}</td>
+            <td class={tw`pl-2`}>{o.date.toLocaleString()}</td>
           </tr>
         ))}
       </table>

@@ -46,6 +46,9 @@ const ware: Middleware = {
 
     const lines = a.body.split("\n");
     let i = 1;
+    if (!lines[i]) {
+      ++i; // Sometimes there is a blank line before boundary -- skip it
+    }
     const boundary = lines[i++];
     const parts: Part[] = [];
 
@@ -108,7 +111,7 @@ const ware: Middleware = {
       } else {
         console.log(
           "unsupported multipart content",
-          p.contentType || p.headers,
+          p.headers["content-type"],
         );
       }
     }
@@ -131,6 +134,8 @@ const ware: Middleware = {
         };
       });
     }
+
+    a.ext.multipart = true;
   },
 };
 

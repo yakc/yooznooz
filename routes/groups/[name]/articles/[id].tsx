@@ -8,11 +8,11 @@ import {
   NewsGroup,
   NewsImage,
   NewsOrigin,
-  unquoteName,
   unquoteString,
+  whoFrom,
 } from "yooznooz/lib/model.ts";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
-import { WrappedArticle } from "yooznooz/lib/ware.ts";
+import { NewsExt, WareExt, WrappedArticle } from "yooznooz/lib/ware.ts";
 
 export interface ArticleProps {
   article: WrappedArticle;
@@ -69,6 +69,19 @@ export const handler: Handlers = {
   },
 };
 
+function extDescription(ext: NewsExt) {
+  const images = (ext.img || []) as NewsImage[];
+  if (images.length) {
+    if (images.length > 1) {
+      return `${images.length} images`;
+    }
+    return "1 image";
+  } else if (ext.multipart) {
+    return "multi-part";
+  }
+  return "";
+}
+
 export default function Article(props: PageProps<WrappedArticle>) {
   const images = (props.data.ext.img || []) as NewsImage[];
   const lbl = tw`col-span-1 text-right`;
@@ -77,18 +90,24 @@ export default function Article(props: PageProps<WrappedArticle>) {
     <>
       <form class={tw`container grid gap-4 px-2`}>
         <label class={lbl}>Date</label>
-        <span class={val}>{props.data.date.toLocaleString()}</span>
+        <span class={tw`col-start-2 col-span-3`}>
+          {props.data.date.toLocaleString()}
+        </span>
+        <span class={tw`col-start-6`}>{extDescription(props.data.ext)}</span>
         <label class={lbl}>From</label>
         <span class={val}>
-          {unquoteName(props.data.from)} &lt;{props.data.from.email}&gt;
+          {whoFrom(props.data.from)} &lt;{props.data.from.email}&gt;
         </span>
         <label class={lbl}>Subject</label>
         <span class={val}>{props.data.subject}</span>
-        <pre class={tw`col-span-6 whitespace-pre-wrap`}>{props.data.body}</pre>
+        <pre class={tw`col-span-6 whitespace-pre-wrap mt-3`}>
+          {props.data.body.trim()}
+        </pre>
       </form>
+      {images.length > 0 &&
+        <hr class={tw`my-2`} />}
       {images.map((m) => (
         <div class={tw`py-2 px-2`}>
-          <hr />
           <p>{unquoteString(m.name)}</p>
           <img src={`data:${m.contentType};${m.contentEncoding},${m.data}`} />
         </div>

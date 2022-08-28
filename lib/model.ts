@@ -77,8 +77,8 @@ export function unquoteString(s: string | undefined) {
   return (/^"?(.*?)"?$/.exec(s) as string[])[1];
 }
 
-export function unquoteName(from: From) {
-  return unquoteString(from.name);
+export function whoFrom(from: From) {
+  return unquoteString(from.name) || from.email;
 }
 
 export interface NewsOverview {
