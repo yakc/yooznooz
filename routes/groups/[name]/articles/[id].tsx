@@ -12,7 +12,7 @@ import {
   whoFrom,
 } from "yooznooz/lib/model.ts";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
-import { ExtArticle, NewsExt, WrappedArticle } from "yooznooz/lib/ware.ts";
+import { ArticleExt, ExtArticle, WrappedArticle } from "yooznooz/lib/ware.ts";
 
 export interface ArticleProps {
   article: WrappedArticle;
@@ -37,8 +37,8 @@ export const handler: Handlers = {
   },
 };
 
-function extDescription(ext: NewsExt) {
-  const images = (ext.img || []) as NewsImage[];
+function extDescription(ext: ArticleExt) {
+  const images = ext.img || [];
   if (images.length) {
     if (images.length > 1) {
       return `${images.length} images`;
@@ -51,7 +51,8 @@ function extDescription(ext: NewsExt) {
 }
 
 export default function Article(props: PageProps<ExtArticle>) {
-  const images = (props.data.ext.img || []) as NewsImage[];
+  const signature = props.data.ext.sig || "";
+  const images = props.data.ext.img || [];
   const lbl = tw`col-span-1 text-right`;
   const val = tw`col-start-2 col-span-5`;
   return (
@@ -69,7 +70,8 @@ export default function Article(props: PageProps<ExtArticle>) {
         <label class={lbl}>Subject</label>
         <span class={val}>{props.data.subject}</span>
         <pre class={tw`col-span-6 whitespace-pre-wrap mt-3`}>
-          {props.data.body.trim()}
+          <p>{props.data.body.trim()}</p>
+          <p style="font-size: x-small">{signature.trim()}</p>
         </pre>
       </form>
       {images.length > 0 &&

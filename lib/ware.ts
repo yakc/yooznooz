@@ -4,6 +4,7 @@ import {
   NewsGroup,
   NewsGroupArticle,
   NewsGroupInfo,
+  NewsImage,
   NewsOrigin,
   NewsOverview,
   NewsRange,
@@ -11,13 +12,19 @@ import {
 
 export type NewsExt = Record<string, unknown>;
 
-export interface WareExt {
-  ext: NewsExt;
+export interface ArticleExt {
+  multipart?: boolean;
+  img?: NewsImage[];
+  sig?: string;
 }
 
-export type ExtOverview = NewsOverview & WareExt;
+export interface WareExt<T> {
+  ext: T;
+}
 
-export type ExtArticle = NewsGroupArticle & WareExt;
+export type ExtOverview = NewsOverview & WareExt<NewsExt>;
+
+export type ExtArticle = NewsGroupArticle & WareExt<ArticleExt & NewsExt>;
 
 export interface Coded {
   code: string;
