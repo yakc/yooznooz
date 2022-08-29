@@ -12,6 +12,7 @@ import {
 
 export type NewsExt = Record<string, unknown>;
 
+/** the known extensions for an Article */
 export interface ArticleExt {
   multipart?: boolean;
   img?: NewsImage[];
@@ -24,6 +25,7 @@ export interface WareExt<T> {
 
 export type ExtOverview = NewsOverview & WareExt<NewsExt>;
 
+/** an Article with extensions */
 export type ExtArticle = NewsGroupArticle & WareExt<ArticleExt & NewsExt>;
 
 export interface Coded {

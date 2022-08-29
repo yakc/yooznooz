@@ -4,18 +4,19 @@ import { Fragment, h } from "preact";
 import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 import { tw } from "@twind";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
+import * as format from "yooznooz/lib/format.ts";
 import {
   NewsGroup,
-  NewsImage,
   NewsOrigin,
   unquoteString,
   whoFrom,
 } from "yooznooz/lib/model.ts";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
-import { ArticleExt, ExtArticle, WrappedArticle } from "yooznooz/lib/ware.ts";
+import { ArticleExt, ExtArticle } from "yooznooz/lib/ware.ts";
 
 export interface ArticleProps {
-  article: WrappedArticle;
+  article: ExtArticle;
+  lang: string[];
 }
 
 export const handler: Handlers = {
@@ -32,7 +33,7 @@ export const handler: Handlers = {
     if (!article) {
       return new Response(null, { status: 429 });
     }
-    const response = await ctx.render(article);
+    const response = await ctx.render({ article, lang: my.lang });
     return response;
   },
 };
@@ -50,9 +51,10 @@ function extDescription(ext: ArticleExt) {
   return "";
 }
 
-export default function Article(props: PageProps<ExtArticle>) {
-  const signature = props.data.ext.sig || "";
-  const images = props.data.ext.img || [];
+export default function Article(props: PageProps<ArticleProps>) {
+  const { article, lang } = props.data;
+  const signature = article.ext.sig || "";
+  const images = article.ext.img || [];
   const lbl = tw`col-span-1 text-right`;
   const val = tw`col-start-2 col-span-5`;
   return (
@@ -60,17 +62,17 @@ export default function Article(props: PageProps<ExtArticle>) {
       <form class={tw`container grid gap-4 px-2`}>
         <label class={lbl}>Date</label>
         <span class={tw`col-start-2 col-span-3`}>
-          {props.data.date.toLocaleString()}
+          {format.date(article.date, lang)}
         </span>
-        <span class={tw`col-start-6`}>{extDescription(props.data.ext)}</span>
+        <span class={tw`col-start-6`}>{extDescription(article.ext)}</span>
         <label class={lbl}>From</label>
         <span class={val}>
-          {whoFrom(props.data.from)} &lt;{props.data.from.email}&gt;
+          {whoFrom(article.from)} &lt;{article.from.email}&gt;
         </span>
         <label class={lbl}>Subject</label>
-        <span class={val}>{props.data.subject}</span>
+        <span class={val}>{article.subject}</span>
         <pre class={tw`col-span-6 whitespace-pre-wrap mt-3`}>
-          <p>{props.data.body.trim()}</p>
+          <p>{article.body.trim()}</p>
           <p style="font-size: x-small">{signature.trim()}</p>
         </pre>
       </form>

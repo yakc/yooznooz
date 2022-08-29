@@ -6,6 +6,7 @@ type Names = "ORIGINS";
 export class MyCookies {
   /** NewsOrigin encoded as protocol-less URL */
   origins: NewsOrigin[];
+  lang: string[];
 
   constructor(req: Request) {
     const cookies = getCookies(req.headers);
@@ -13,6 +14,10 @@ export class MyCookies {
       new URL(`http://${u}`)
     );
     this.origins = urls.map(MyCookies.url2Origin);
+    this.lang = (req.headers.get("accept-language") || "").split(",").map(
+      // e.g. Accept-Language: en-US,en;q=0.9
+      (al) => al.split(";")[0],
+    );
   }
 
   private static url2Origin(url: URL): NewsOrigin {
