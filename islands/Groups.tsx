@@ -10,13 +10,8 @@ import {
   NewsSubscription,
   originAlias,
 } from "yooznooz/lib/model.ts";
-import { MyCookies } from "../lib/cookies.ts";
-
-export interface GroupsProps {
-  origins: NewsOrigin[];
-  groups: NewsGroupInfo[];
-  subs: NewsSubscription[];
-}
+import { MyCookies } from "yooznooz/lib/cookies.ts";
+import { IS_BROWSER } from "$fresh/runtime.ts";
 
 function fetchGroups(origin: NewsOrigin): Promise<NewsGroupInfo[]> {
   return fetch(`/api/servers/${origin.host}`)
@@ -38,14 +33,6 @@ function fetchGroups(origin: NewsOrigin): Promise<NewsGroupInfo[]> {
     );
 }
 
-const nf = new Intl.NumberFormat();
-function formatNumber(n: number, zero?: boolean) {
-  if (n || zero) {
-    return nf.format(+n);
-  }
-  return "";
-}
-
 interface OpProps {
   op: string;
   text: string;
@@ -65,7 +52,42 @@ function OpButton(props: OpProps) {
   );
 }
 
+interface NewLastProps {
+  my: MyCookies;
+  renderTime: Date;
+  group: NewsGroupInfo;
+}
+
+function NewLast(props: NewLastProps) {
+  let value = "";
+  if (IS_BROWSER) {
+    const last = localStorage.getItem(`last:${props.group.name}`);
+    if (last && props.group.high) {
+      const split = last.split(";");
+      const high = parseInt(split[0]);
+      const diff = props.group.high - high;
+      if (diff > 0) {
+        value = `${MyCookies.formatter(props.my.lang).num(diff)}\u00a0new`;
+      } else {
+        value = MyCookies.formatter(props.my.lang).ago(
+          new Date(split[1]),
+          props.renderTime,
+        );
+      }
+    }
+  }
+  return <td class={tw`pl-2 text-right`}>{value}</td>;
+}
+
+export interface GroupsProps {
+  my: MyCookies;
+  origins: NewsOrigin[];
+  groups: NewsGroupInfo[];
+  subs: NewsSubscription[];
+}
+
 export default function Groups(props: GroupsProps) {
+  const { my } = props;
   const [origins, setOrigins] = useState(props.origins);
   const [addHost, setAddHost] = useState("");
   const [addError, setAddError] = useState("");
@@ -73,6 +95,7 @@ export default function Groups(props: GroupsProps) {
   const [subs] = useState(props.subs);
   const tbl = tw`mx-2`;
   const thd = tw`border(dotted b-2)`;
+  const renderTime = new Date();
   return (
     <>
       <table class={tbl}>
@@ -81,6 +104,7 @@ export default function Groups(props: GroupsProps) {
             {/* <th class={tw`w-8`}>Sub</th> */}
             <th class={tw`w-auto`}>Group</th>
             <th>Articles</th>
+            <th class={tw`pl-2`}>New/Last</th>
           </tr>
         </thead>
         <tbody>
@@ -92,11 +116,16 @@ export default function Groups(props: GroupsProps) {
                 </td> */
               }
               <td>
-                <a href={`/groups/${group.name}`}>{group.name}</a>
+                <a href={`/groups/${group.name}`}>
+                  {group.name}
+                </a>
               </td>
               <td class={tw`pl-2 text-right`}>
-                {formatNumber(group.count || group.high - group.low)}
+                {MyCookies.formatter(my.lang).num(
+                  group.count || group.high - group.low + 1,
+                )}
               </td>
+              <NewLast my={my} renderTime={renderTime} group={group} />
             </tr>
           ))}
         </tbody>

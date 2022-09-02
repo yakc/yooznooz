@@ -61,6 +61,7 @@ export interface From {
 }
 
 export interface Overview {
+  number?: number; // returned by XOVER (may be zero), but not ARTICLE
   id: string;
   from: From;
   date: Date;
@@ -81,6 +82,7 @@ export interface Article {
 
 export function parseOverview(dict: MessageOverviewRaw): Overview {
   return {
+    number: parseInt(dict.number) || undefined, // neither NaN nor zero
     id: dict["message-id"],
     from: emailParse(dict.from),
     date: dateParse(dict.date),

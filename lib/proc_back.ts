@@ -93,7 +93,8 @@ class ProcBack implements NewsBack {
     const [nntp, give, overviewFormat] = await this.#conn(group.origin);
     try {
       const active = Object.assign(await nntp.group(group.name), group);
-      return (await nntp.xover(rangeValidate(range, active), overviewFormat))
+      range = rangeValidate(range, active);
+      return (await nntp.xover(`${range.low}-${range.high}`, overviewFormat))
         .map(parseOverview);
     } finally {
       give();

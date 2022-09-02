@@ -45,7 +45,10 @@ export interface NewsRange {
   slice?: number;
 }
 
-export function rangeValidate(range: NewsRange, active: NewsGroupInfo): string {
+export function rangeValidate(
+  range: NewsRange,
+  active: NewsGroupInfo,
+): NewsRange {
   let { low, high, slice } = range;
   if (low) {
     low = Math.max(low, active.low);
@@ -68,7 +71,7 @@ export function rangeValidate(range: NewsRange, active: NewsGroupInfo): string {
       high = low + slice - 1;
     }
   }
-  return `${low}-${high}`;
+  return { low, high, slice: Math.sign(slice || 0) };
 }
 
 export type NewsArticleID = string;
@@ -86,6 +89,7 @@ export function whoFrom(from: From) {
 
 export interface NewsOverview {
   readonly id: NewsArticleID;
+  number?: number;
   from: From;
   date: Date;
   subject: string;

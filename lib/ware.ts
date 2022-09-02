@@ -87,6 +87,10 @@ const codedTimeout = Object.freeze({
   },
 });
 
+function log(...args: unknown[]) {
+  console.log(new Date().toISOString(), ...args);
+}
+
 function race<T>(
   promise: Promise<T>,
   message: (result?: T) => string,
@@ -97,16 +101,16 @@ function race<T>(
   return Promise.race([
     new Promise<Wrapped<T>>((resolve) =>
       timer = setTimeout(() => {
-        console.log(`waiting too long (${waitMillis} ms) for`, message());
+        log(`waiting too long (${waitMillis} ms) for`, message());
         resolve({ value: fail, err: codedTimeout });
       }, waitMillis)
     ),
     promise.then((t) => {
-      console.log(`resolve (${Date.now() - start} ms)`, message(t));
+      log(`resolve (${Date.now() - start} ms)`, message(t));
       clearTimeout(timer);
       return { value: t };
     }).catch((x) => {
-      console.log(`reject  (${Date.now() - start} ms)`, message(), String(x));
+      log(`reject  (${Date.now() - start} ms)`, message(), String(x));
       clearTimeout(timer);
       return { value: fail, err: x };
     }),

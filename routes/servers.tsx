@@ -22,6 +22,7 @@ export async function handler(
     my.origins.map((origin) => newsBack.groups(origin)),
   )).flatMap((w) => w.value);
   const data: GroupsProps = {
+    my,
     origins: my.origins,
     groups,
     subs: [],
@@ -36,6 +37,7 @@ export default function Servers(props: PageProps<GroupsProps>) {
     <>
       <p>Subscribed Groups and Servers {props.params.name}</p>
       <Groups
+        my={props.data.my}
         origins={props.data.origins}
         groups={props.data.groups}
         subs={props.data.subs}

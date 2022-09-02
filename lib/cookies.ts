@@ -1,5 +1,6 @@
 import { getCookies } from "$std/http/cookie.ts";
 import { NewsOrigin } from "./model.ts";
+import { default as format } from "./format.ts";
 
 type Names = "ORIGINS";
 
@@ -18,6 +19,11 @@ export class MyCookies {
       // e.g. Accept-Language: en-US,en;q=0.9
       (al) => al.split(";")[0],
     );
+  }
+
+  /** static function to return formatter; methods do not rehydrate */
+  static formatter(lang: string[]) {
+    return format(lang);
   }
 
   private static url2Origin(url: URL): NewsOrigin {

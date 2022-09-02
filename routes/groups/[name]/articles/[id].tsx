@@ -4,7 +4,6 @@ import { Fragment, h } from "preact";
 import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 import { tw } from "@twind";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
-import * as format from "yooznooz/lib/format.ts";
 import {
   NewsGroup,
   NewsOrigin,
@@ -15,8 +14,8 @@ import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
 import { ArticleExt, ExtArticle } from "yooznooz/lib/ware.ts";
 
 export interface ArticleProps {
+  my: MyCookies;
   article: ExtArticle;
-  lang: string[];
 }
 
 export const handler: Handlers = {
@@ -33,7 +32,7 @@ export const handler: Handlers = {
     if (!article) {
       return new Response(null, { status: 429 });
     }
-    const response = await ctx.render({ article, lang: my.lang });
+    const response = await ctx.render({ my, article });
     return response;
   },
 };
@@ -52,7 +51,7 @@ function extDescription(ext: ArticleExt) {
 }
 
 export default function Article(props: PageProps<ArticleProps>) {
-  const { article, lang } = props.data;
+  const { my, article } = props.data;
   const signature = article.ext.sig || "";
   const images = article.ext.img || [];
   const lbl = tw`col-span-1 text-right`;
@@ -62,7 +61,7 @@ export default function Article(props: PageProps<ArticleProps>) {
       <form class={tw`container grid gap-4 px-2`}>
         <label class={lbl}>Date</label>
         <span class={tw`col-start-2 col-span-3`}>
-          {format.date(article.date, lang)}
+          {MyCookies.formatter(my.lang).date(article.date)}
         </span>
         <span class={tw`col-start-6`}>{extDescription(article.ext)}</span>
         <label class={lbl}>From</label>
