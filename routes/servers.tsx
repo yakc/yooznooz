@@ -2,6 +2,7 @@
 /** @jsxFrag Fragment */
 import { Fragment, h } from "preact";
 import { HandlerContext, PageProps } from "$fresh/server.ts";
+import { Head } from "$fresh/runtime.ts";
 import { default as Groups, GroupsProps } from "yooznooz/islands/Groups.tsx";
 import { default as newsBack } from "yooznooz/lib/proc_wrap.ts";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
@@ -35,6 +36,9 @@ export async function handler(
 export default function Servers(props: PageProps<GroupsProps>) {
   return (
     <>
+      <Head>
+        <title>YoozNooz Groups &amp; Servers</title>
+      </Head>
       <p>Subscribed Groups and Servers {props.params.name}</p>
       <Groups
         my={props.data.my}

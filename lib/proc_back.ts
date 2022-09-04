@@ -94,8 +94,39 @@ class ProcBack implements NewsBack {
     try {
       const active = Object.assign(await nntp.group(group.name), group);
       range = rangeValidate(range, active);
-      return (await nntp.xover(`${range.low}-${range.high}`, overviewFormat))
-        .map(parseOverview);
+      // actually want to allow desired to be undefined for further
+      // comparisons with over.length, which will be false in both
+      // directions. But TypeScript doesn't allow that, so assert
+      // non-null to simplify code that follows (it's a lie either way)
+      const desired = range.slice! && range.high! - range.low! + 1;
+      // desired is smaller than slice only if initial range hit active boundary
+      let over =
+        (await nntp.xover(`${range.low}-${range.high}`, overviewFormat))
+          .map(parseOverview);
+      while (over.length < desired) {
+        range.low! += range.slice!;
+        range.high! += range.slice!;
+        if (range.high! < active.low || range.low! > active.high) {
+          break;
+        }
+        range = rangeValidate(range, active);
+        const more =
+          (await nntp.xover(`${range.low}-${range.high}`, overviewFormat))
+            .map(parseOverview);
+        if (range.slice! < 0) {
+          over = more.concat(over);
+        } else {
+          over = over.concat(more);
+        }
+      }
+      if (over.length > desired) {
+        if (range.slice! < 0) {
+          over = over.slice(-desired);
+        } else {
+          over = over.slice(0, desired);
+        }
+      }
+      return over;
     } finally {
       give();
     }

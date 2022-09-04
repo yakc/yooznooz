@@ -71,7 +71,7 @@ export function rangeValidate(
       high = low + slice - 1;
     }
   }
-  return { low, high, slice: Math.sign(slice || 0) };
+  return { low, high, slice };
 }
 
 export type NewsArticleID = string;
@@ -85,6 +85,10 @@ export function unquoteString(s: string | undefined) {
 
 export function whoFrom(from: From) {
   return unquoteString(from.name) || from.email;
+}
+
+export function unRe(subject: string) {
+  return (/^(Re:\s*)*(.*)$/i.exec(subject) as string[])[2];
 }
 
 export interface NewsOverview {

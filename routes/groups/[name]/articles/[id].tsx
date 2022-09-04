@@ -2,12 +2,14 @@
 /** @jsxFrag Fragment */
 import { Fragment, h } from "preact";
 import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
+import { Head } from "$fresh/runtime.ts";
 import { tw } from "@twind";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import {
   NewsGroup,
   NewsOrigin,
   unquoteString,
+  unRe,
   whoFrom,
 } from "yooznooz/lib/model.ts";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
@@ -56,12 +58,18 @@ export default function Article(props: PageProps<ArticleProps>) {
   const images = article.ext.img || [];
   const lbl = tw`col-span-1 text-right`;
   const val = tw`col-start-2 col-span-5`;
+  const formatter = MyCookies.formatter(my.lang);
   return (
     <>
+      <Head>
+        <title>
+          {unRe(article.subject)} | {whoFrom(article.from)} | YoozNooz
+        </title>
+      </Head>
       <form class={tw`container grid gap-4 px-2`}>
         <label class={lbl}>Date</label>
         <span class={tw`col-start-2 col-span-3`}>
-          {MyCookies.formatter(my.lang).date(article.date)}
+          {formatter.date(article.date)}
         </span>
         <span class={tw`col-start-6`}>{extDescription(article.ext)}</span>
         <label class={lbl}>From</label>
