@@ -61,3 +61,14 @@ export function ago(lang: string[], arg: Date, now?: Date) {
   const f = new Intl.DateTimeFormat(lang, options);
   return f.format(arg).replaceAll(/\s+/g, nbsp);
 }
+
+export function unquoteString(s: string | undefined) {
+  if (!s) {
+    return "";
+  }
+  return (/^"?(.*?)"?$/.exec(s) as string[])[1];
+}
+
+export function nonbreak(s: string) {
+  return s.replaceAll(/\s+/g, nbsp);
+}

@@ -17,7 +17,8 @@ Deno.test("parses headers", async () => {
 
   await nntp.connectAndAuthenticate();
   const numbers = await nntp.group(args.group);
-  const article = await nntp.article(String(numbers.high));
+  const id = args.article || String(numbers.high);
+  const article = await nntp.article(id);
   console.log("article", article.headers);
   const headers = parseHeaders(article);
   console.log("headers", headers);

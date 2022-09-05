@@ -1,5 +1,6 @@
-import { NNTPOptions } from "nntp";
-import { Article, From } from "./usenet.ts";
+import { MessageLines, NNTPOptions } from "nntp";
+import { unquoteString } from "./format.ts";
+import { Article, ContentType, From } from "./usenet.ts";
 
 /** Stateless async back-end API; e.g. REST or in-process */
 export interface NewsBack {
@@ -9,6 +10,7 @@ export interface NewsBack {
     origin: NewsOrigin,
     articles: Iterable<[NewsGroup, NewsArticleID]>,
   ): AsyncGenerator<NewsGroupArticle>;
+  raw(origin: NewsOrigin, id: NewsArticleID): Promise<MessageLines>;
 }
 
 export interface NewsOrigin extends NNTPOptions {
@@ -76,13 +78,6 @@ export function rangeValidate(
 
 export type NewsArticleID = string;
 
-export function unquoteString(s: string | undefined) {
-  if (!s) {
-    return "";
-  }
-  return (/^"?(.*?)"?$/.exec(s) as string[])[1];
-}
-
 export function whoFrom(from: From) {
   return unquoteString(from.name) || from.email;
 }
@@ -102,6 +97,7 @@ export interface NewsOverview {
 
 export interface NewsArticle extends NewsOverview {
   body: string;
+  contentType?: ContentType;
 }
 
 export interface NewsGroupArticle extends NewsArticle {
@@ -112,7 +108,7 @@ export function composeArticle(
   article: Article,
   group: NewsGroup,
 ): NewsGroupArticle {
-  const { id, from, date, subject, references } = article.headers;
+  const { id, from, date, subject, references, contentType } = article.headers;
   return {
     group,
     id,
@@ -120,15 +116,37 @@ export function composeArticle(
     date,
     subject,
     references,
+    contentType,
     body: article.body,
   };
 }
 
-export interface NewsImage {
+export interface NewsAttachment {
   name?: string;
   contentType: string;
   contentEncoding: string;
   data: string;
+}
+
+export type NewsImage = NewsAttachment;
+
+function generateName(i: number) {
+  return `attachment-${i + 1}`;
+}
+
+/** Uniquely identify by name or number (base-1) */
+export function collateAttachmentNames(ats: NewsAttachment[]): string[] {
+  const names = ats.map((at, i) => at.name || generateName(i));
+  for (let i = names.length - 1; i > 0; --i) {
+    const name = names[i];
+    for (let j = i - 1; j >= 0; --j) {
+      if (name === names[j]) {
+        names[i] = generateName(i);
+        names[j] = generateName(j);
+      }
+    }
+  }
+  return names;
 }
 
 export interface NewsSubscription {

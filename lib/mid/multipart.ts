@@ -1,4 +1,5 @@
-import { NewsImage } from "../model.ts";
+import { unquoteString } from "../format.ts";
+import { NewsAttachment } from "../model.ts";
 import { ExtArticle, Middleware } from "../ware.ts";
 
 interface Header {
@@ -11,6 +12,7 @@ interface Part {
   headers: Record<string, Header>;
   contentType: string;
   contentEncoding: string;
+  contentDisposition: string;
   lines: string[];
 }
 
@@ -40,16 +42,19 @@ function parseHeader(line: string): Header {
 
 const ware: Middleware = {
   article(a: ExtArticle) {
-    if (!a.body.startsWith("This is a multi-part message in MIME format")) {
+    if (!a.contentType?.boundary) {
       return;
     }
+    const boundary = "--" + a.contentType?.boundary;
 
     const lines = a.body.split("\n");
-    let i = 1;
-    if (!lines[i]) {
-      ++i; // Sometimes there is a blank line before boundary -- skip it
+    let i = 0;
+    while (i < lines.length) {
+      if (lines[i++].startsWith(boundary)) {
+        break;
+      }
     }
-    const boundary = lines[i++];
+
     const parts: Part[] = [];
 
     function extractPart(): Part {
@@ -57,6 +62,7 @@ const ware: Middleware = {
         headers: {},
         contentType: "",
         contentEncoding: "",
+        contentDisposition: "",
         lines: [],
       };
       let h = "";
@@ -82,6 +88,7 @@ const ware: Middleware = {
 
       p.contentType = p.headers["content-type"]?.value || "";
       p.contentEncoding = p.headers["content-transfer-encoding"]?.value || "";
+      p.contentDisposition = p.headers["content-disposition"]?.value || "";
 
       const start = i;
       while (i < lines.length) {
@@ -103,11 +110,18 @@ const ware: Middleware = {
 
     let text: Part;
     const images: Part[] = [];
+    const attachments: Part[] = [];
     for (const p of parts) {
       if (p.contentType.startsWith("text/")) {
-        text = p;
+        if (p.contentDisposition) {
+          attachments.push(p);
+        } else if (!text!) {
+          text = p;
+        }
       } else if (p.contentType.startsWith("image/")) {
         images.push(p);
+      } else if (p.contentType.startsWith("application/")) {
+        attachments.push(p);
       } else {
         console.log(
           "unsupported multipart content",
@@ -120,19 +134,24 @@ const ware: Middleware = {
       a.body = text.lines.join("\n");
     }
 
+    function attach(p: Part): NewsAttachment {
+      const disposition = p.headers["content-disposition"]?.extra["filename"];
+      const name = disposition || p.headers["content-type"]?.extra["name"];
+      const { contentType, contentEncoding } = p;
+      const data = p.lines.join("");
+      return {
+        name: unquoteString(name),
+        contentType,
+        contentEncoding,
+        data,
+      };
+    }
+
     if (images.length) {
-      a.ext.img = images.map<NewsImage>((p) => {
-        const disposition = p.headers["content-disposition"]?.extra["filename"];
-        const name = disposition || p.headers["content-type"]?.extra["name"];
-        const { contentType, contentEncoding } = p;
-        const data = p.lines.join("");
-        return {
-          name,
-          contentType,
-          contentEncoding,
-          data,
-        };
-      });
+      a.ext.img = images.map(attach);
+    }
+    if (attachments.length) {
+      a.ext.attach = attachments.map(attach);
     }
 
     a.ext.multipart = true;

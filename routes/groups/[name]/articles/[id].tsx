@@ -5,10 +5,13 @@ import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import { tw } from "@twind";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
+import { nonbreak, unquoteString } from "yooznooz/lib/format.ts";
 import {
+  collateAttachmentNames,
+  NewsArticleID,
+  NewsAttachment,
   NewsGroup,
   NewsOrigin,
-  unquoteString,
   unRe,
   whoFrom,
 } from "yooznooz/lib/model.ts";
@@ -41,11 +44,17 @@ export const handler: Handlers = {
 
 function extDescription(ext: ArticleExt) {
   const images = ext.img || [];
+  const attachments = ext.attach || [];
   if (images.length) {
     if (images.length > 1) {
       return `${images.length} images`;
     }
     return "1 image";
+  } else if (attachments.length) {
+    if (attachments.length > 1) {
+      return `${images.length} attachments`;
+    }
+    return "1 attachment";
   } else if (ext.multipart) {
     return "multi-part";
   }
@@ -56,6 +65,7 @@ export default function Article(props: PageProps<ArticleProps>) {
   const { my, article } = props.data;
   const signature = article.ext.sig || "";
   const images = article.ext.img || [];
+  const attachments = article.ext.attach || [];
   const lbl = tw`col-span-1 text-right`;
   const val = tw`col-start-2 col-span-5`;
   const formatter = MyCookies.formatter(my.lang);
@@ -71,26 +81,78 @@ export default function Article(props: PageProps<ArticleProps>) {
         <span class={tw`col-start-2 col-span-3`}>
           {formatter.date(article.date)}
         </span>
-        <span class={tw`col-start-6`}>{extDescription(article.ext)}</span>
+        <span class={tw`col-start-6`}>
+          {nonbreak(extDescription(article.ext))}
+        </span>
         <label class={lbl}>From</label>
         <span class={val}>
           {whoFrom(article.from)} &lt;{article.from.email}&gt;
         </span>
         <label class={lbl}>Subject</label>
         <span class={val}>{article.subject}</span>
-        <pre class={tw`col-span-6 whitespace-pre-wrap mt-3`}>
+        <pre class={tw`col-span-6 whitespace-pre-wrap mt-3 max-w-4xl`}>
           <p>{article.body.trim()}</p>
           <p style="font-size: x-small">{signature.trim()}</p>
         </pre>
       </form>
-      {images.length > 0 &&
+      {(images.length > 0 || attachments.length > 0) &&
         <hr class={tw`my-2`} />}
       {images.map((m) => (
         <div class={tw`py-2 px-2`}>
-          <p>{unquoteString(m.name)}</p>
+          <p>{m.name}</p>
           <img src={`data:${m.contentType};${m.contentEncoding},${m.data}`} />
         </div>
       ))}
+      {attachments.length > 0 && (
+        <AttachmentTable id={article.id} attachments={attachments} />
+      )}
     </>
+  );
+}
+
+interface AttachmentTableProps {
+  id: NewsArticleID;
+  attachments: NewsAttachment[];
+}
+
+function AttachmentTable(props: AttachmentTableProps) {
+  const thd = tw`border(dotted b-2)`;
+  return (
+    <table class={tw`mx-2 my-2`}>
+      <thead class={thd}>
+        <tr>
+          <th>Attachment</th>
+          <th class={tw`pl-2 text-right`}>approx size K</th>
+        </tr>
+      </thead>
+      {collateAttachmentNames(props.attachments).map((name, i) => (
+        <tr>
+          <td>
+            {props.attachments[i].contentEncoding === "base64"
+              ? (
+                <a
+                  href={[
+                    encodeURIComponent(props.id),
+                    "attachments",
+                    encodeURIComponent(name),
+                  ].join("/")}
+                >
+                  {name}
+                </a>
+              )
+              : name}
+          </td>
+          <td class={tw`pl-2 text-right`}>
+            {(props.attachments[i].data.length * 3 / 4 / 1024).toFixed(1)}
+          </td>
+          {props.attachments[i].contentEncoding !== "base64" &&
+            (
+              <td>
+                unsupported encoding: {props.attachments[i].contentEncoding}
+              </td>
+            )}
+        </tr>
+      ))}
+    </table>
   );
 }

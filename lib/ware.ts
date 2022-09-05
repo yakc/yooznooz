@@ -1,5 +1,6 @@
 import {
   NewsArticleID,
+  NewsAttachment,
   NewsBack,
   NewsGroup,
   NewsGroupArticle,
@@ -16,6 +17,7 @@ export type NewsExt = Record<string, unknown>;
 export interface ArticleExt {
   multipart?: boolean;
   img?: NewsImage[];
+  attach?: NewsAttachment[];
   sig?: string;
 }
 

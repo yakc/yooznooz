@@ -1,4 +1,5 @@
 import { MessageLines, MessageOverviewRaw } from "nntp";
+import { unquoteString } from "./format.ts";
 
 const identity = <T>(x: T) => x;
 const idParse = (line: string) => (/<[^\s<>]+@[^\s>]+>/.exec(line) || [])[0];
@@ -19,6 +20,26 @@ const emailParse = (line: string): From => {
   return { email, name };
 };
 const dateParse = (line: string) => new Date(line);
+const contentTypeParse = (line: string): ContentType | undefined => {
+  if (!line) {
+    return;
+  }
+  const parts = line.split(";").map((p) => p.trim());
+  const mime = parts[0];
+  const boundary = parts.slice(1).map((p) => {
+    const parts = p.split("=").map((p) => p.trim());
+    if (parts[0] === "boundary") {
+      return unquoteString(parts[1]);
+    }
+  }).filter((p) => p)[0];
+  const charset = parts.slice(1).map((p) => {
+    const parts = p.split("=").map((p) => p.trim());
+    if (parts[0] === "charset") {
+      return parts[1];
+    }
+  }).filter((p) => p)[0];
+  return { mime, boundary, charset };
+};
 
 const punctSeparator = /[ -,/:-@[-`{-~]+/; // with space, but no dot or hyphen
 const punctSplit = (line: string) => line ? line.split(punctSeparator) : [];
@@ -69,10 +90,17 @@ export interface Overview {
   references: string[];
 }
 
+export interface ContentType {
+  mime: string;
+  boundary?: string;
+  charset?: string;
+}
+
 export interface Headers extends Overview {
   newgroups: Newsgroup[];
   path: string[];
   lines: number;
+  contentType?: ContentType;
 }
 
 export interface Article {
@@ -114,6 +142,7 @@ export function parseHeaders(msg: MessageLines): Headers {
     newgroups: commaSpaceSplit(dict["Newsgroups"]),
     path: punctSplit(dict["Path"]),
     lines: parseInt(dict["Lines"], 10),
+    contentType: contentTypeParse(dict["Content-Type"]),
   };
 }
 

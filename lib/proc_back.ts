@@ -1,4 +1,4 @@
-import { default as NNTP, OverviewFieldIsFullDict } from "nntp";
+import { default as NNTP, MessageLines, OverviewFieldIsFullDict } from "nntp";
 import {
   composeArticle,
   NewsArticleID,
@@ -18,6 +18,7 @@ type Resolver = (value: void | PromiseLike<void>) => void;
 
 class Connection {
   #connected = false;
+  #recycleTimer = 0;
   lock?: Promise<void>;
   overviewFormat: OverviewFieldIsFullDict = {};
 
@@ -27,9 +28,10 @@ class Connection {
     await this.nntp.connectAndAuthenticate();
     this.#connected = true;
     this.overviewFormat = await this.nntp.overviewFormat();
-    setTimeout(async () => {
+    this.#recycleTimer = setTimeout(async () => {
       const give = await this.take();
       try {
+        this.#recycleTimer = 0;
         await this.nntp.disconnect();
         this.#connected = false;
       } finally {
@@ -51,6 +53,13 @@ class Connection {
       this.lock = undefined;
     });
     return give as Resolver;
+  }
+
+  disconnect(): Promise<void> {
+    if (this.#recycleTimer) {
+      clearTimeout(this.#recycleTimer);
+    }
+    return this.nntp.disconnect();
   }
 }
 
@@ -146,9 +155,18 @@ class ProcBack implements NewsBack {
     }
   }
 
+  async raw(origin: NewsOrigin, id: NewsArticleID): Promise<MessageLines> {
+    const [nntp, give] = await this.#conn(origin);
+    try {
+      return await nntp.article(id);
+    } finally {
+      give();
+    }
+  }
+
   async stop() {
     await Promise.all(
-      Object.values(this.#connections).map((conn) => conn.nntp.disconnect()),
+      Object.values(this.#connections).map((conn) => conn.disconnect()),
     );
   }
 }
