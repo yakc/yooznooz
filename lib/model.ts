@@ -1,4 +1,5 @@
 import { MessageLines, NNTPOptions } from "nntp";
+import { default as codec } from "./codec.ts";
 import { unquoteString } from "./format.ts";
 import { Article, ContentType, From } from "./usenet.ts";
 
@@ -130,6 +131,13 @@ export interface NewsAttachment {
 
 export type NewsImage = NewsAttachment;
 
+export interface CollatedAttachment {
+  name: string;
+  length: number;
+  reason: string;
+  attachment: NewsAttachment;
+}
+
 function generateName(i: number) {
   return `attachment-${i + 1}`;
 }
@@ -147,6 +155,29 @@ export function collateAttachmentNames(ats: NewsAttachment[]): string[] {
     }
   }
   return names;
+}
+
+export function collateAttachments(
+  ats: NewsAttachment[],
+): CollatedAttachment[] {
+  const names = collateAttachmentNames(ats);
+  return ats.map((a, i) => {
+    const c = codec(a.contentEncoding);
+    if (typeof c === "string") {
+      return {
+        name: names[i],
+        length: a.data.length,
+        reason: c,
+        attachment: a,
+      };
+    }
+    return {
+      name: names[i],
+      length: c.estimateLengthDecoded(a.data),
+      reason: "",
+      attachment: a,
+    };
+  });
 }
 
 export interface NewsSubscription {

@@ -131,14 +131,14 @@ const ware: Middleware = {
     }
 
     if (text!) {
-      a.body = text.lines.join("\n");
+      a.body = text.lines.join("\n"); // LF for body which turns into HTML
     }
 
     function attach(p: Part): NewsAttachment {
       const disposition = p.headers["content-disposition"]?.extra["filename"];
       const name = disposition || p.headers["content-type"]?.extra["name"];
       const { contentType, contentEncoding } = p;
-      const data = p.lines.join("");
+      const data = p.lines.join("\r\n"); // CRLF to preserve binary data, if any
       return {
         name: unquoteString(name),
         contentType,

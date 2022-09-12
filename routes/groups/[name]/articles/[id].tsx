@@ -5,9 +5,9 @@ import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import { tw } from "@twind";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
-import { nonbreak, unquoteString } from "yooznooz/lib/format.ts";
+import { nonbreak } from "yooznooz/lib/format.ts";
 import {
-  collateAttachmentNames,
+  collateAttachments,
   NewsArticleID,
   NewsAttachment,
   NewsGroup,
@@ -17,11 +17,6 @@ import {
 } from "yooznooz/lib/model.ts";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
 import { ArticleExt, ExtArticle } from "yooznooz/lib/ware.ts";
-
-export interface ArticleProps {
-  my: MyCookies;
-  article: ExtArticle;
-}
 
 export const handler: Handlers = {
   async GET(req: Request, ctx: HandlerContext) {
@@ -61,6 +56,11 @@ function extDescription(ext: ArticleExt) {
   return "";
 }
 
+export interface ArticleProps {
+  my: MyCookies;
+  article: ExtArticle;
+}
+
 export default function Article(props: PageProps<ArticleProps>) {
   const { my, article } = props.data;
   const signature = article.ext.sig || "";
@@ -78,7 +78,7 @@ export default function Article(props: PageProps<ArticleProps>) {
       </Head>
       <form class={tw`container grid gap-4 px-2`}>
         <label class={lbl}>Date</label>
-        <span class={tw`col-start-2 col-span-3`}>
+        <span class={tw`col-start-2 col-span-4`}>
           {formatter.date(article.date)}
         </span>
         <span class={tw`col-start-6`}>
@@ -122,35 +122,31 @@ function AttachmentTable(props: AttachmentTableProps) {
       <thead class={thd}>
         <tr>
           <th>Attachment</th>
-          <th class={tw`pl-2 text-right`}>approx size K</th>
+          <th class={tw`pl-2 text-right whitespace-nowrap`}>approx size K</th>
+          <th></th>
         </tr>
       </thead>
-      {collateAttachmentNames(props.attachments).map((name, i) => (
+      {collateAttachments(props.attachments).map((a, i) => (
         <tr>
           <td>
-            {props.attachments[i].contentEncoding === "base64"
-              ? (
-                <a
-                  href={[
-                    encodeURIComponent(props.id),
-                    "attachments",
-                    encodeURIComponent(name),
-                  ].join("/")}
-                >
-                  {name}
-                </a>
-              )
-              : name}
+            {a.reason ? a.name : (
+              <a
+                href={[
+                  encodeURIComponent(props.id),
+                  "attachments",
+                  encodeURIComponent(a.name),
+                ].join("/")}
+              >
+                {a.name}
+              </a>
+            )}
           </td>
           <td class={tw`pl-2 text-right`}>
-            {(props.attachments[i].data.length * 3 / 4 / 1024).toFixed(1)}
+            {(a.length / 1024).toFixed(1)}
           </td>
-          {props.attachments[i].contentEncoding !== "base64" &&
-            (
-              <td>
-                unsupported encoding: {props.attachments[i].contentEncoding}
-              </td>
-            )}
+          <td class={tw`pl-2`}>
+            {a.reason}
+          </td>
         </tr>
       ))}
     </table>

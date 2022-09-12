@@ -1,5 +1,6 @@
 import { HandlerContext } from "$fresh/server.ts";
 import { Buffer } from "$std/node/buffer.ts";
+import { default as codec } from "yooznooz/lib/codec.ts";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import {
   collateAttachmentNames,
@@ -26,20 +27,18 @@ export async function handler(
   }
   const attachments = article.ext.attach || [];
   const names = collateAttachmentNames(attachments);
-  const index = names.indexOf(ctx.params.file);
+  const index = names.indexOf(decodeURIComponent(ctx.params.file));
   if (index < 0) {
     return new Response(null, { status: 404 });
   }
   const attach = attachments[index];
-  const filename = attach.name || ctx.params.file;
-  if (attach.contentEncoding === "base64") {
-    const content = Buffer.from(attach.data, "base64");
-    return new Response(content, {
-      headers: { "Content-Disposition": `attachment; filename=${filename};` },
-    });
+  const c = codec(attach.contentEncoding);
+  if (typeof c === "string") {
+    return new Response(c, { status: 400 });
   }
-  return new Response(
-    `unsupported content encoding: ${attach.contentEncoding}`,
-    { status: 400 },
-  );
+  const content = c.decode(attach.data);
+  const filename = attach.name || ctx.params.file;
+  return new Response(content, {
+    headers: { "Content-Disposition": `attachment; filename=${filename};` },
+  });
 }
