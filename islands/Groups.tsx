@@ -169,6 +169,7 @@ export default function Groups(props: GroupsProps) {
                 class={tw`-ml-1.5`}
                 style="padding: 6px"
                 placeholder="host name or IP"
+                type="url"
                 value={addHost}
                 onChange={(e) => {
                   setAddHost(e.currentTarget.value.trim());
