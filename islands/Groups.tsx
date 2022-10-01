@@ -1,5 +1,8 @@
+import { Head, IS_BROWSER } from "$fresh/runtime.ts";
 import { useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
+import { MyCookies } from "yooznooz/lib/cookies.ts";
+import { nbsp } from "yooznooz/lib/format.ts";
 import {
   groupComparator,
   NewsGroupInfo,
@@ -7,8 +10,6 @@ import {
   NewsSubscription,
   originAlias,
 } from "yooznooz/lib/model.ts";
-import { MyCookies } from "yooznooz/lib/cookies.ts";
-import { IS_BROWSER } from "$fresh/runtime.ts";
 
 function fetchGroups(origin: NewsOrigin): Promise<NewsGroupInfo[]> {
   return fetch(`/api/servers/${origin.host}`)
@@ -77,6 +78,31 @@ function NewLast(props: NewLastProps) {
   return <td class="pl-2 text-right">{value}</td>;
 }
 
+const loadingGroups = new Set<string>();
+
+// mostly from https://codepen.io/mandelid/pen/kNBYLJ
+const loadingCss = `
+.loading {
+  display: inline-block;
+  margin-left: 6px;
+  margin-bottom: -2px;
+  width: 15px;
+  height: 15px;
+  border: 3px solid rgba(155,55,255,.6);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+  -webkit-animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { -webkit-transform: rotate(360deg); }
+}
+@-webkit-keyframes spin {
+  to { -webkit-transform: rotate(360deg); }
+}
+`;
+
 export interface GroupsProps {
   my: MyCookies;
   origins: NewsOrigin[];
@@ -96,6 +122,9 @@ export default function Groups(props: GroupsProps) {
   const renderTime = new Date();
   return (
     <>
+      <Head>
+        <style>{loadingCss}</style>
+      </Head>
       <table class={tbl}>
         <thead class={thd}>
           <tr>
@@ -141,6 +170,9 @@ export default function Groups(props: GroupsProps) {
             <tr key={originAlias(origin)}>
               <td>
                 {originAlias(origin)}
+                {loadingGroups.has(originAlias(origin)) && (
+                  <div class="loading"></div>
+                )}
               </td>
               <td class="align-top">
                 <OpButton
@@ -187,7 +219,7 @@ export default function Groups(props: GroupsProps) {
                   }
                 }}
               />
-              <div class="text-red-600">{addError}</div>
+              <div class="text-red-600">{addError || nbsp}</div>
             </td>
             <td class="align-top">
               <OpButton
@@ -211,6 +243,7 @@ export default function Groups(props: GroupsProps) {
                   const addOrigin = { host: addHost };
                   const index = origins.push(addOrigin) - 1;
                   setAddHost("");
+                  loadingGroups.add(addOrigin.host);
                   fetchGroups(addOrigin).then((g) =>
                     groups.concat(g).sort(groupComparator)
                   ).then(setGroups).then(() => {
@@ -218,9 +251,9 @@ export default function Groups(props: GroupsProps) {
                     setOrigins(origins);
                   }).catch((x) => {
                     origins.splice(index, 1);
-                    setAddHost(addHost);
+                    setAddHost(addOrigin.host);
                     setAddError(String(x));
-                  });
+                  }).finally(() => loadingGroups.delete(addOrigin.host));
                 }}
               />
             </td>
