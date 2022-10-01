@@ -1,6 +1,6 @@
 import { ExtArticle, Middleware } from "../ware.ts";
 
-const ware: Middleware = {
+export default {
   article(a: ExtArticle) {
     const marker = a.body.indexOf("\n-- \n");
     if (marker <= 0) {
@@ -10,6 +10,4 @@ const ware: Middleware = {
     a.ext.sig = a.body.slice(marker + 1);
     a.body = a.body.slice(0, marker);
   },
-};
-
-export default ware;
+} as Middleware;

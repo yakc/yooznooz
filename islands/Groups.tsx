@@ -1,8 +1,5 @@
-/** @jsx h */
-/** @jsxFrag Fragment */
-import { Fragment, h } from "preact";
 import { useState } from "preact/hooks";
-import { tw } from "@twind";
+import { JSX } from "preact/jsx-runtime";
 import {
   groupComparator,
   NewsGroupInfo,
@@ -36,18 +33,19 @@ function fetchGroups(origin: NewsOrigin): Promise<NewsGroupInfo[]> {
 interface OpProps {
   op: string;
   text: string;
-  onClick: h.JSX.MouseEventHandler<HTMLButtonElement>;
+  onClick: JSX.MouseEventHandler<HTMLButtonElement>;
 }
 
 function OpButton(props: OpProps) {
-  const btn = tw`px-1 py-1 border(gray-100 1) hover:bg-gray-200`;
+  const btn = `px-1 py-1 border(gray-100 1) hover:bg-gray-200`;
   return (
     <button
       class={btn}
+      data-op={props.op}
       onClick={props.onClick}
     >
-      <span class={tw`inline-block w-6 text-center`}>{props.op}</span>
-      <span class={tw`inline-block w-10 text-left`}>{props.text}</span>
+      <span class="inline-block w-6 text-center">{props.op}</span>
+      <span class="inline-block w-10 text-left">{props.text}</span>
     </button>
   );
 }
@@ -76,7 +74,7 @@ function NewLast(props: NewLastProps) {
       }
     }
   }
-  return <td class={tw`pl-2 text-right`}>{value}</td>;
+  return <td class="pl-2 text-right">{value}</td>;
 }
 
 export interface GroupsProps {
@@ -93,25 +91,25 @@ export default function Groups(props: GroupsProps) {
   const [addError, setAddError] = useState("");
   const [groups, setGroups] = useState(props.groups);
   const [subs] = useState(props.subs);
-  const tbl = tw`mx-2`;
-  const thd = tw`border(dotted b-2)`;
+  const tbl = `mx-2`;
+  const thd = `border(dotted b-2)`;
   const renderTime = new Date();
   return (
     <>
       <table class={tbl}>
         <thead class={thd}>
           <tr>
-            {/* <th class={tw`w-8`}>Sub</th> */}
-            <th class={tw`w-auto`}>Group</th>
+            {/* <th class="w-8">Sub</th> */}
+            <th class="w-auto">Group</th>
             <th>Articles</th>
-            <th class={tw`pl-2`}>New/Last</th>
+            <th class="pl-2">New/Last</th>
           </tr>
         </thead>
         <tbody>
           {groups.map((group) => (
             <tr key={group.name + originAlias(group.origin)}>
               {
-                /* <td class={tw`text-center`}>
+                /* <td class="text-center">
                   <input type="checkbox" />
                 </td> */
               }
@@ -120,7 +118,7 @@ export default function Groups(props: GroupsProps) {
                   {group.name}
                 </a>
               </td>
-              <td class={tw`pl-2 text-right`}>
+              <td class="pl-2 text-right">
                 {MyCookies.formatter(my.lang).num(
                   group.count || group.high - group.low + 1,
                 )}
@@ -130,8 +128,8 @@ export default function Groups(props: GroupsProps) {
           ))}
         </tbody>
       </table>
-      <hr class={tw`my-2`} />
-      <table class={tw`mx-2`}>
+      <hr class="my-2" />
+      <table class="mx-2">
         <thead class={thd}>
           <tr>
             <th>Server</th>
@@ -144,7 +142,7 @@ export default function Groups(props: GroupsProps) {
               <td>
                 {originAlias(origin)}
               </td>
-              <td class={tw`align-top`}>
+              <td class="align-top">
                 <OpButton
                   op="&minus;"
                   text="Del"
@@ -166,7 +164,7 @@ export default function Groups(props: GroupsProps) {
           <tr>
             <td>
               <input
-                class={tw`-ml-1.5`}
+                class="-ml-1.5"
                 style="padding: 6px"
                 placeholder="host name or IP"
                 type="url"
@@ -174,10 +172,24 @@ export default function Groups(props: GroupsProps) {
                 onChange={(e) => {
                   setAddHost(e.currentTarget.value.trim());
                 }}
+                onKeyPress={(e) => {
+                  if (e.key == "Enter") {
+                    const self = e.currentTarget;
+                    const row = self.closest("tr");
+                    const b = row!.querySelector(
+                      `button[data-op="+"]`,
+                    ) as HTMLButtonElement;
+                    self.blur();
+                    setTimeout(() => {
+                      b.click();
+                      setTimeout(() => self.focus());
+                    });
+                  }
+                }}
               />
-              <div class={tw`text-red-600`}>{addError}</div>
+              <div class="text-red-600">{addError}</div>
             </td>
-            <td class={tw`align-top`}>
+            <td class="align-top">
               <OpButton
                 op="+"
                 text="Add"

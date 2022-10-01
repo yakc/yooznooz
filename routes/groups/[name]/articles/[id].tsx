@@ -1,9 +1,5 @@
-/** @jsx h */
-/** @jsxFrag Fragment */
-import { Fragment, h } from "preact";
 import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
-import { tw } from "@twind";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import { nonbreak } from "yooznooz/lib/format.ts";
 import {
@@ -66,8 +62,8 @@ export default function Article(props: PageProps<ArticleProps>) {
   const signature = article.ext.sig || "";
   const images = article.ext.img || [];
   const attachments = article.ext.attach || [];
-  const lbl = tw`col-span-1 text-right`;
-  const val = tw`col-start-2 col-span-5`;
+  const lbl = `col-span-1 text-right`;
+  const val = `col-start-2 col-span-5`;
   const formatter = MyCookies.formatter(my.lang);
   return (
     <>
@@ -76,12 +72,12 @@ export default function Article(props: PageProps<ArticleProps>) {
           {unRe(article.subject)} | {whoFrom(article.from)} | YoozNooz
         </title>
       </Head>
-      <form class={tw`container grid gap-4 px-2`}>
+      <form class="container grid gap-4 px-2 mt-1">
         <label class={lbl}>Date</label>
-        <span class={tw`col-start-2 col-span-4`}>
+        <span class="col-start-2 col-span-4">
           {formatter.date(article.date)}
         </span>
-        <span class={tw`col-start-6`}>
+        <span class="col-start-6">
           {nonbreak(extDescription(article.ext))}
         </span>
         <label class={lbl}>From</label>
@@ -90,15 +86,15 @@ export default function Article(props: PageProps<ArticleProps>) {
         </span>
         <label class={lbl}>Subject</label>
         <span class={val}>{article.subject}</span>
-        <pre class={tw`col-span-6 whitespace-pre-wrap mt-3 max-w-4xl`}>
+        <pre class="col-span-6 whitespace-pre-wrap mt-3 max-w-4xl">
           <p>{article.body.trim()}</p>
           <p style="font-size: x-small">{signature.trim()}</p>
         </pre>
       </form>
       {(images.length > 0 || attachments.length > 0) &&
-        <hr class={tw`my-2`} />}
+        <hr class="my-2" />}
       {images.map((m) => (
-        <div class={tw`py-2 px-2`}>
+        <div class="py-2 px-2">
           <p>{m.name}</p>
           <img src={`data:${m.contentType};${m.contentEncoding},${m.data}`} />
         </div>
@@ -116,13 +112,13 @@ interface AttachmentTableProps {
 }
 
 function AttachmentTable(props: AttachmentTableProps) {
-  const thd = tw`border(dotted b-2)`;
+  const thd = `border(dotted b-2)`;
   return (
-    <table class={tw`mx-2 my-2`}>
+    <table class="mx-2 my-2">
       <thead class={thd}>
         <tr>
           <th>Attachment</th>
-          <th class={tw`pl-2 text-right whitespace-nowrap`}>approx size K</th>
+          <th class="pl-2 text-right whitespace-nowrap">approx size K</th>
           <th></th>
         </tr>
       </thead>
@@ -141,10 +137,10 @@ function AttachmentTable(props: AttachmentTableProps) {
               </a>
             )}
           </td>
-          <td class={tw`pl-2 text-right`}>
+          <td class="pl-2 text-right">
             {(a.length / 1024).toFixed(1)}
           </td>
-          <td class={tw`pl-2`}>
+          <td class="pl-2">
             {a.reason}
           </td>
         </tr>

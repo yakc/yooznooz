@@ -162,8 +162,7 @@ export class WrappedBack {
       generator.next().then((i) => i.value),
       (a) =>
         a
-          ? `article ${id} in ${group.name} from origin ${origin.host}: ${a
-            ?.body?.length}`
+          ? `article ${id} in ${group.name} from origin ${origin.host}: ${a?.body?.length}`
           : `article ${id} in ${group.name} from origin ${origin.host}`,
       null,
     ).finally(() => generator.return(undefined));

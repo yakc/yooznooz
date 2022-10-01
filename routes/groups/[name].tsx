@@ -1,9 +1,5 @@
-/** @jsx h */
-/** @jsxFrag Fragment */
-import { Fragment, h } from "preact";
 import { HandlerContext, PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
-import { tw } from "@twind";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import {
   NewsGroup,
@@ -50,7 +46,10 @@ export async function handler(
   const group: NewsGroup = { origin, name: ctx.params.name };
   const overview = (await wrappedBack.overview(group, range)).value;
   if (!overview.length) {
-    return new Response(`no Article #${Math.abs(+start)}`, { status: 404 });
+    const message = start
+      ? `no Article #${Math.abs(+start)} in ${group.name}`
+      : `no group ${group.name}`;
+    return new Response(message, { status: 404 });
   }
   if (range.slice! < 0) {
     // can't just reverse since they might have been fetched in batches
@@ -88,7 +87,7 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
   const direction = Math.sign(range.slice!);
   const nextLabel = direction < 0 ? "Older" : "Newer";
   const pageNav = (
-    <div class={tw`px-2`}>
+    <div class="px-2">
       <p>
         {sparse && "sparse"} Articles {topNumber} to {bottomNumber}
       </p>
@@ -106,8 +105,8 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
       </Head>
       {inject}
       {pageNav}
-      <hr class={tw`my-2`} />
-      <table class={tw`mx-2`}>
+      <hr class="my-2" />
+      <table class="mx-2">
         <tbody>
           {overview.map((o) => (
             <tr>
@@ -118,13 +117,13 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
                   {o.subject}
                 </a>
               </td>
-              <td class={tw`pl-2`}>{whoFrom(o.from)}</td>
-              <td class={tw`pl-2`}>{formatter.date(o.date)}</td>
+              <td class="pl-2">{whoFrom(o.from)}</td>
+              <td class="pl-2">{formatter.date(o.date)}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <hr class={tw`my-2`} />
+      <hr class="my-2" />
       {pageNav}
     </>
   );

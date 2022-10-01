@@ -1,6 +1,6 @@
-import { unquoteString } from "../format.ts";
-import { NewsAttachment } from "../model.ts";
-import { ExtArticle, Middleware } from "../ware.ts";
+import { unquoteString } from "yooznooz/lib/format.ts";
+import { NewsAttachment } from "yooznooz/lib/model.ts";
+import { ExtArticle, Middleware } from "yooznooz/lib/ware.ts";
 
 interface Header {
   name: string;
@@ -40,7 +40,7 @@ function parseHeader(line: string): Header {
   return { name, value, extra };
 }
 
-const ware: Middleware = {
+export default {
   article(a: ExtArticle) {
     if (!a.contentType?.boundary) {
       return;
@@ -156,6 +156,4 @@ const ware: Middleware = {
 
     a.ext.multipart = true;
   },
-};
-
-export default ware;
+} as Middleware;

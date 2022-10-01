@@ -7,8 +7,8 @@ import {
 } from "https://deno.land/std@0.148.0/testing/asserts.ts";
 
 const args = parse(Deno.args);
-assertExists(args.host);
-assertExists(args.group);
+assertExists(args.host, "requires --host");
+assertExists(args.group, "requires --group");
 
 Deno.test("parses headers", async () => {
   const nntp = new NNTP({

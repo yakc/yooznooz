@@ -1,6 +1,6 @@
 import { From } from "yooznooz/lib/usenet.ts";
 import { patchWindows1252 as patch } from "nntp";
-import { ExtArticle, ExtOverview } from "yooznooz/lib/ware.ts";
+import { ExtArticle, ExtOverview, Middleware } from "yooznooz/lib/ware.ts";
 
 function patchFrom(from: From) {
   from.name = patch(from.name);
@@ -16,4 +16,4 @@ export default {
     a.subject = patch(a.subject);
     a.body = patch(a.body);
   },
-};
+} as Middleware;
