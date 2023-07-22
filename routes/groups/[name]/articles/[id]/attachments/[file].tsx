@@ -2,12 +2,9 @@ import { HandlerContext } from "$fresh/server.ts";
 import { Buffer } from "$std/node/buffer.ts";
 import { default as codec } from "yooznooz/lib/codec.ts";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
-import {
-  collateAttachmentNames,
-  NewsGroup,
-  NewsOrigin,
-} from "yooznooz/lib/model.ts";
+import { collateAttachmentNames } from "yooznooz/lib/model.ts";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
+import { name2Group } from "yooznooz/routes/groups/[name].tsx";
 
 export async function handler(
   req: Request,
@@ -18,8 +15,7 @@ export async function handler(
     const url = new URL("/servers", req.url);
     return Response.redirect(url);
   }
-  const origin: NewsOrigin = { host: my.origins[0].host };
-  const group: NewsGroup = { origin, name: ctx.params.name };
+  const [origin, group] = name2Group(my, ctx);
   const id = decodeURIComponent(ctx.params.id);
   const article = (await wrappedBack.article(origin, group, id)).value;
   if (!article) {

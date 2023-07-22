@@ -6,13 +6,12 @@ import {
   collateAttachments,
   NewsArticleID,
   NewsAttachment,
-  NewsGroup,
-  NewsOrigin,
   unRe,
   whoFrom,
 } from "yooznooz/lib/model.ts";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
 import { ArticleExt, ExtArticle } from "yooznooz/lib/ware.ts";
+import { name2Group } from "yooznooz/routes/groups/[name].tsx";
 
 export const handler: Handlers = {
   async GET(req: Request, ctx: HandlerContext) {
@@ -21,8 +20,7 @@ export const handler: Handlers = {
       const url = new URL("/servers", req.url);
       return Response.redirect(url);
     }
-    const origin: NewsOrigin = { host: my.origins[0].host };
-    const group: NewsGroup = { origin, name: ctx.params.name };
+    const [origin, group] = name2Group(my, ctx);
     const id = decodeURIComponent(ctx.params.id);
     const article = (await wrappedBack.article(origin, group, id)).value;
     if (!article) {
@@ -43,7 +41,7 @@ function extDescription(ext: ArticleExt) {
     return "1 image";
   } else if (attachments.length) {
     if (attachments.length > 1) {
-      return `${images.length} attachments`;
+      return `${attachments.length} attachments`;
     }
     return "1 attachment";
   } else if (ext.multipart) {

@@ -1,7 +1,7 @@
 import { HandlerContext } from "$fresh/server.ts";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
-import { NewsOrigin } from "yooznooz/lib/model.ts";
 import { default as newsBack } from "yooznooz/lib/proc_back.ts";
+import { name2Group } from "yooznooz/routes/groups/[name].tsx";
 
 export async function handler(
   req: Request,
@@ -12,7 +12,7 @@ export async function handler(
     const url = new URL("/servers", req.url);
     return Response.redirect(url);
   }
-  const origin: NewsOrigin = { host: my.origins[0].host };
+  const [origin, _] = name2Group(my, ctx);
   const id = decodeURIComponent(ctx.params.id);
   try {
     const { headers, body } = await newsBack.raw(origin, id);

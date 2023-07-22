@@ -4,6 +4,7 @@ import { JSX } from "preact/jsx-runtime";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import { nbsp } from "yooznooz/lib/format.ts";
 import {
+  groupAtOrigin,
   groupComparator,
   NewsGroupInfo,
   NewsOrigin,
@@ -59,14 +60,17 @@ interface NewLastProps {
 
 function NewLast(props: NewLastProps) {
   let value = "";
+  const styles = ["pl-2", "text-right"];
   if (IS_BROWSER) {
-    const last = localStorage.getItem(`last:${props.group.name}`);
+    const last = localStorage.getItem(`last:${groupAtOrigin(props.group)}`) ||
+      localStorage.getItem(`last:${props.group.name}`);
     if (last && props.group.high) {
       const split = last.split(";");
       const high = parseInt(split[0]);
       const diff = props.group.high - high;
       if (diff > 0) {
         value = `${MyCookies.formatter(props.my.lang).num(diff)}\u00a0new`;
+        styles.push("italic");
       } else {
         value = MyCookies.formatter(props.my.lang).ago(
           new Date(split[1]),
@@ -75,7 +79,7 @@ function NewLast(props: NewLastProps) {
       }
     }
   }
-  return <td class="pl-2 text-right">{value}</td>;
+  return <td class={styles.join(" ")}>{value}</td>;
 }
 
 const loadingGroups = new Set<string>();
@@ -103,6 +107,47 @@ const loadingCss = `
 }
 `;
 
+interface Annotation<T> {
+  note: T;
+}
+
+type Annotated<T, V> = T & Annotation<V>;
+
+type AnnotatedOrigin = Annotated<NewsOrigin, number>;
+type AnnotatedGroup = Annotated<NewsGroupInfo, number> & {
+  origin: AnnotatedOrigin;
+};
+
+function annotate(
+  groups: NewsGroupInfo[],
+  origins: NewsOrigin[],
+): [AnnotatedGroup[], AnnotatedOrigin[]] {
+  const ao = origins.map((o, i) => Object.assign(o, { note: i + 1 }));
+  const ag = groups.map((g, i) => {
+    const alias = originAlias(g.origin);
+    let o = ao.find((o) => alias === originAlias(o));
+    if (!o) {
+      o = Object.assign(g.origin, { note: ao.length + 1 });
+      ao.push(o);
+    }
+    return Object.assign(g, { note: 0, origin: o });
+  });
+  ag.sort((a, b) => {
+    const d = groupComparator(a, b);
+    if (d) {
+      return d;
+    }
+    return a.note - b.note;
+  });
+  for (let i = 1; i < ag.length; ++i) {
+    if (ag[i - 1].name === ag[i].name) {
+      ag[i - 1].note = ag[i - 1].origin.note;
+      ag[i].note = ag[i].origin.note;
+    }
+  }
+  return [ag, ao];
+}
+
 export interface GroupsProps {
   my: MyCookies;
   origins: NewsOrigin[];
@@ -112,10 +157,11 @@ export interface GroupsProps {
 
 export default function Groups(props: GroupsProps) {
   const { my } = props;
-  const [origins, setOrigins] = useState(props.origins);
+  const [ag, ao] = annotate(props.groups, props.origins);
+  const [origins, setOrigins] = useState(ao);
   const [addHost, setAddHost] = useState("");
   const [addError, setAddError] = useState("");
-  const [groups, setGroups] = useState(props.groups);
+  const [groups, setGroups] = useState(ag);
   const [subs] = useState(props.subs);
   const tbl = `mx-2`;
   const thd = `border(dotted b-2)`;
@@ -136,14 +182,15 @@ export default function Groups(props: GroupsProps) {
         </thead>
         <tbody>
           {groups.map((group) => (
-            <tr key={group.name + originAlias(group.origin)}>
+            <tr key={group.name + group.note + originAlias(group.origin)}>
               {
                 /* <td class="text-center">
                   <input type="checkbox" />
                 </td> */
               }
               <td>
-                <a href={`/groups/${group.name}`}>
+                <a href={`/groups/${groupAtOrigin(group)}`}>
+                  {group.note > 0 && <sup>{group.note}</sup>}
                   {group.name}
                 </a>
               </td>
@@ -167,8 +214,12 @@ export default function Groups(props: GroupsProps) {
         </thead>
         <tbody>
           {origins.map((origin, i) => (
-            <tr key={originAlias(origin)}>
+            <tr key={origin.note + originAlias(origin)}>
               <td>
+                {origins.length - loadingGroups.size > 0 &&
+                  !loadingGroups.has(originAlias(origin)) && (
+                  <sup>{origin.note}</sup>
+                )}
                 {originAlias(origin)}
                 {loadingGroups.has(originAlias(origin)) && (
                   <div class="loading"></div>
@@ -181,11 +232,14 @@ export default function Groups(props: GroupsProps) {
                   onClick={(e) => {
                     const deleted = origins.splice(i, 1)[0];
                     document.cookie = MyCookies.origins(origins);
-                    setGroups(
+                    const [ag, ao] = annotate(
                       groups.filter((g) =>
                         originAlias(g.origin) !== originAlias(deleted)
                       ),
+                      origins,
                     );
+                    setGroups(ag);
+                    setOrigins(ao);
                   }}
                 />
               </td>
@@ -240,12 +294,14 @@ export default function Groups(props: GroupsProps) {
                     setAddError("server name cannot be blank");
                     return;
                   }
-                  const addOrigin = { host: addHost };
+                  const addOrigin = { host: addHost, note: origins.length + 1 };
                   const index = origins.push(addOrigin) - 1;
                   setAddHost("");
                   loadingGroups.add(addOrigin.host);
                   fetchGroups(addOrigin).then((g) =>
-                    groups.concat(g).sort(groupComparator)
+                    groups.concat(
+                      annotate(g, origins)[0],
+                    ).sort(groupComparator)
                   ).then(setGroups).then(() => {
                     document.cookie = MyCookies.origins(origins);
                     setOrigins(origins);

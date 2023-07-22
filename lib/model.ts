@@ -16,6 +16,7 @@ export interface NewsBack {
 
 export interface NewsOrigin extends NNTPOptions {
   alias?: string;
+  checked?: Date;
 }
 
 export function originAlias(origin: NewsOrigin) {
@@ -30,6 +31,10 @@ export function originAlias(origin: NewsOrigin) {
 export interface NewsGroup {
   readonly origin: NewsOrigin;
   readonly name: string;
+}
+
+export function groupAtOrigin(group: NewsGroup) {
+  return `${group.name}@${originAlias(group.origin)}`;
 }
 
 export interface NewsGroupInfo extends NewsGroup {

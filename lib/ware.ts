@@ -130,12 +130,17 @@ export class WrappedBack {
           ? `groups for origin ${origin.host}: ${g.length}`
           : `groups for origin ${origin.host}`,
       [],
-    ).then(({ value, err }) => ({
-      value: control
-        ? value
-        : value.filter((g) => !g.name.startsWith("control.")),
-      err,
-    }));
+    ).then(({ value, err }) => {
+      if (!err) {
+        origin.checked = new Date();
+      }
+      return {
+        value: control
+          ? value
+          : value.filter((g) => !g.name.startsWith("control.")),
+        err,
+      };
+    });
   }
 
   overview(group: NewsGroup, range: NewsRange): Promise<WrappedOverview> {

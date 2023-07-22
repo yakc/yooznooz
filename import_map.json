@@ -1,6 +1,6 @@
 {
   "imports": {
-    "$fresh/": "https://deno.land/x/fresh@1.1.1/",
+    "$fresh/": "https://deno.land/x/fresh@1.1.2/",
     "nntp": "https://raw.githubusercontent.com/yakc/deno-nntp/4c35def/nntp.ts",
     "preact": "https://esm.sh/preact@10.11.0",
     "preact/": "https://esm.sh/preact@10.11.0/",
@@ -9,8 +9,8 @@
     "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.0.1",
     "rfc2047": "https://raw.githubusercontent.com/yakc/rfc2047/v4.0.1-deno/lib/rfc2047.js",
     "$std/": "https://deno.land/std@0.155.0/",
-    "twind": "https://esm.sh/twind@0.16.17",
-    "twind/": "https://esm.sh/twind@0.16.17/",
+    "twind": "https://esm.sh/twind@0.16.19",
+    "twind/": "https://esm.sh/twind@0.16.19/",
     "yooznooz/": "./"
   }
 }

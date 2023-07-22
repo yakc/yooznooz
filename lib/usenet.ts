@@ -2,7 +2,7 @@ import { MessageLines, MessageOverviewRaw } from "nntp";
 import { unquoteString } from "./format.ts";
 
 const identity = <T>(x: T) => x;
-const idParse = (line: string) => (/<[^\s<>]+@[^\s>]+>/.exec(line) || [])[0];
+const idParse = (line: string) => (/<[^\s<>]+@[^\s>]+>/.exec(line) || [""])[0];
 const emailParse = (line: string): From => {
   let match, name = "", email = "";
   // deno-lint-ignore no-cond-assign
@@ -16,6 +16,11 @@ const emailParse = (line: string): From => {
     // deno-lint-ignore no-cond-assign
   } else if (match = /([^@]+@[^@]+)/.exec(line)) {
     email = match[1];
+    // deno-lint-ignore no-cond-assign
+  } else if (match = /(.+)\s+<(.+)>/.exec(line)) {
+    // not an actual valid email -- allowed for now
+    name = match[1];
+    email = match[2];
   }
   return { email, name };
 };
@@ -31,13 +36,13 @@ const contentTypeParse = (line: string): ContentType | undefined => {
     if (parts[0] === "boundary") {
       return unquoteString(parts[1]);
     }
-  }).filter((p) => p)[0];
+  }).filter(identity)[0];
   const charset = parts.slice(1).map((p) => {
     const parts = p.split("=").map((p) => p.trim());
     if (parts[0] === "charset") {
       return parts[1];
     }
-  }).filter((p) => p)[0];
+  }).filter(identity)[0];
   return { mime, boundary, charset };
 };
 
@@ -134,7 +139,7 @@ export function parseHeaders(msg: MessageLines): Headers {
   );
 
   return {
-    id: (/<[^\s<>]+@[^\s>]+>/.exec(dict["Message-ID"]) || [])[0],
+    id: idParse(dict["Message-ID"]),
     from: emailParse(dict["From"]),
     date: dateParse(dict["Date"]),
     subject: dict["Subject"],

@@ -2,6 +2,7 @@ import { HandlerContext, PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import {
+  groupAtOrigin,
   NewsGroup,
   NewsOrigin,
   NewsOverview,
@@ -11,6 +12,22 @@ import {
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
 
 const pageSize = 100;
+
+export function name2Group(
+  my: MyCookies,
+  ctx: HandlerContext,
+): [NewsOrigin, NewsGroup] {
+  const [name, host] = (() => {
+    const at = ctx.params.name.split("@", 2);
+    if (at[1]) {
+      return at;
+    }
+    return [ctx.params.name, my.origins[0].host];
+  })();
+  const origin: NewsOrigin = { host };
+  const group: NewsGroup = { origin, name };
+  return [origin, group];
+}
 
 function start2Range(start: number): NewsRange {
   const newest = !(start > 0); // NaN also sorts by most recent
@@ -42,8 +59,7 @@ export async function handler(
   }
   const start = new URL(req.url).searchParams.get("start") || "";
   const range = start2Range(parseInt(start));
-  const origin: NewsOrigin = { host: my.origins[0].host };
-  const group: NewsGroup = { origin, name: ctx.params.name };
+  const [_, group] = name2Group(my, ctx);
   const overview = (await wrappedBack.overview(group, range)).value;
   if (!overview.length) {
     const message = start
@@ -76,8 +92,8 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
   const top = overview[0];
   const inject = top.number && !range.low && !range.high && (
     <script>
-      localStorage.setItem(`last:{group.name}`, `{top.number};{top.date
-        .toISOString()}`);
+      localStorage.setItem(`last:{groupAtOrigin(group)}`, `{top.number};{top
+        .date.toISOString()}`);
     </script>
   );
   const bottom = overview.slice(-1)[0];
@@ -112,7 +128,9 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
             <tr>
               <td>
                 <a
-                  href={`${group.name}/articles/${encodeURIComponent(o.id)}`}
+                  href={`${groupAtOrigin(group)}/articles/${
+                    encodeURIComponent(o.id)
+                  }`}
                 >
                   {o.subject}
                 </a>
