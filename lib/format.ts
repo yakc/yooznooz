@@ -21,7 +21,8 @@ export function date(lang: string[], arg: Date) {
     dateStyle: "short",
     timeStyle: "short",
   });
-  const ret = f.format(arg);
+  // handle e.g. new Date(''), which becomes "Invalid Date"
+  const ret = isNaN(arg.valueOf()) ? String(arg) : f.format(arg);
   // 8/28/22, 11:42 PM should not wrap on space before PM, but should after comma
   return ret.replace(/ ([a-z]+)/i, nbsp + "$1");
 }
