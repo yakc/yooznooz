@@ -129,3 +129,9 @@ possible that you share an IP with someone else doing the same thing.
 
 With offline reading, you would only have to run the web server for a few
 minutes to fetch the latest messages and post replies.
+
+## Build notes
+
+- std/node breaks at 0.166.0 (`Deno` is referenced in `node/internal_binding/constants.ts`,
+  which does not exist in browser)
+- std/node/buffer missing as of 0.178.0

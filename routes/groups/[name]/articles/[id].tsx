@@ -1,4 +1,4 @@
-import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
+import { FreshContext, Handlers, PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import { nonbreak } from "yooznooz/lib/format.ts";
@@ -14,7 +14,7 @@ import { ArticleExt, ExtArticle } from "yooznooz/lib/ware.ts";
 import { name2Group } from "yooznooz/routes/groups/[name].tsx";
 
 export const handler: Handlers = {
-  async GET(req: Request, ctx: HandlerContext) {
+  async GET(req: Request, ctx: FreshContext) {
     const my = new MyCookies(req);
     if (!my.origins.length) {
       const url = new URL("/servers", req.url);
@@ -120,7 +120,7 @@ function AttachmentTable(props: AttachmentTableProps) {
           <th></th>
         </tr>
       </thead>
-      {collateAttachments(props.attachments).map((a, i) => (
+      {collateAttachments(props.attachments).map((a, _i) => (
         <tr>
           <td>
             {a.reason ? a.name : (

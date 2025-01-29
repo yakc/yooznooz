@@ -1,4 +1,4 @@
-import { HandlerContext, PageProps } from "$fresh/server.ts";
+import { FreshContext, PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import {
@@ -15,7 +15,7 @@ const pageSize = 100;
 
 export function name2Group(
   my: MyCookies,
-  ctx: HandlerContext,
+  ctx: FreshContext,
 ): [NewsOrigin, NewsGroup] {
   const [name, host] = (() => {
     const at = ctx.params.name.split("@", 2);
@@ -50,7 +50,7 @@ function start2Range(start: number): NewsRange {
 
 export async function handler(
   req: Request,
-  ctx: HandlerContext,
+  ctx: FreshContext,
 ): Promise<Response> {
   const my = new MyCookies(req);
   if (!my.origins.length) {

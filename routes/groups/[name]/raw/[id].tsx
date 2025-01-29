@@ -1,11 +1,11 @@
-import { HandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import { default as newsBack } from "yooznooz/lib/proc_back.ts";
 import { name2Group } from "yooznooz/routes/groups/[name].tsx";
 
 export async function handler(
   req: Request,
-  ctx: HandlerContext,
+  ctx: FreshContext,
 ): Promise<Response> {
   const my = new MyCookies(req);
   if (!my.origins.length) {
@@ -21,6 +21,6 @@ export async function handler(
       headers: { "Content-Disposition": `attachment; filename=${id};` },
     });
   } catch (x) {
-    return new Response(x.toString(), { status: 400 });
+    return new Response(String(x), { status: 400 });
   }
 }

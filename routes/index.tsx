@@ -1,8 +1,8 @@
-import { HandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export function handler(
   req: Request,
-  _ctx: HandlerContext,
+  _ctx: FreshContext,
 ): Response {
   // Temporary hard redirect to configure servers and groups
   const url = new URL("/servers", req.url);

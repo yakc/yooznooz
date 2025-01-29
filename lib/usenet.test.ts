@@ -4,7 +4,7 @@ import { parse } from "https://deno.land/std@0.148.0/flags/mod.ts";
 import {
   assert,
   assertExists,
-} from "https://deno.land/std@0.148.0/testing/asserts.ts";
+} from "@std/assert";
 
 const args = parse(Deno.args);
 assertExists(args.host, "requires --host");

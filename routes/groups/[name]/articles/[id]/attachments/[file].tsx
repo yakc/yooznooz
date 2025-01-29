@@ -1,5 +1,4 @@
-import { HandlerContext } from "$fresh/server.ts";
-import { Buffer } from "$std/node/buffer.ts";
+import { FreshContext } from "$fresh/server.ts";
 import { default as codec } from "yooznooz/lib/codec.ts";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
 import { collateAttachmentNames } from "yooznooz/lib/model.ts";
@@ -8,7 +7,7 @@ import { name2Group } from "yooznooz/routes/groups/[name].tsx";
 
 export async function handler(
   req: Request,
-  ctx: HandlerContext,
+  ctx: FreshContext,
 ): Promise<Response> {
   const my = new MyCookies(req);
   if (!my.origins.length) {

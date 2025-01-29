@@ -123,7 +123,7 @@ function annotate(
   origins: NewsOrigin[],
 ): [AnnotatedGroup[], AnnotatedOrigin[]] {
   const ao = origins.map((o, i) => Object.assign(o, { note: i + 1 }));
-  const ag = groups.map((g, i) => {
+  const ag = groups.map((g, _i) => {
     const alias = originAlias(g.origin);
     let o = ao.find((o) => alias === originAlias(o));
     if (!o) {
@@ -162,7 +162,7 @@ export default function Groups(props: GroupsProps) {
   const [addHost, setAddHost] = useState("");
   const [addError, setAddError] = useState("");
   const [groups, setGroups] = useState(ag);
-  const [subs] = useState(props.subs);
+  const [_subs] = useState(props.subs);
   const tbl = `mx-2`;
   const thd = `border(dotted b-2)`;
   const renderTime = new Date();
@@ -229,7 +229,7 @@ export default function Groups(props: GroupsProps) {
                 <OpButton
                   op="&minus;"
                   text="Del"
-                  onClick={(e) => {
+                  onClick={(_e) => {
                     const deleted = origins.splice(i, 1)[0];
                     document.cookie = MyCookies.origins(origins);
                     const [ag, ao] = annotate(

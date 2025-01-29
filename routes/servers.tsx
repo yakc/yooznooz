@@ -1,19 +1,19 @@
-import { HandlerContext, PageProps } from "$fresh/server.ts";
+import { FreshContext, PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import { default as Groups, GroupsProps } from "yooznooz/islands/Groups.tsx";
 import { default as newsBack } from "yooznooz/lib/proc_wrap.ts";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
-import { NewsGroupInfo, NewsOrigin } from "yooznooz/lib/model.ts";
+// import { NewsGroupInfo, NewsOrigin } from "yooznooz/lib/model.ts";
 
-const noOrigin: NewsOrigin = { host: "fake.example.com" };
-const noGroups: NewsGroupInfo[] = [
-  { origin: noOrigin, name: "one", high: 100, low: 1 },
-  { origin: noOrigin, name: "two", high: 20, low: 1 },
-];
+// const noOrigin: NewsOrigin = { host: "fake.example.com" };
+// const noGroups: NewsGroupInfo[] = [
+//   { origin: noOrigin, name: "one", high: 100, low: 1 },
+//   { origin: noOrigin, name: "two", high: 20, low: 1 },
+// ];
 
 export async function handler(
   req: Request,
-  ctx: HandlerContext,
+  ctx: FreshContext,
 ): Promise<Response> {
   const my = new MyCookies(req);
   const groups = (await Promise.all(

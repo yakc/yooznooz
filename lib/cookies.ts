@@ -1,4 +1,4 @@
-import { getCookies } from "$std/http/cookie.ts";
+import { getCookies } from "@std/http/cookie";
 import { NewsOrigin } from "./model.ts";
 import { default as format } from "./format.ts";
 

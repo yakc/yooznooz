@@ -1,9 +1,9 @@
-import { HandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
 
 export const handler = async (
   _req: Request,
-  ctx: HandlerContext,
+  ctx: FreshContext,
 ): Promise<Response> => {
   const host = ctx.params.host;
   const groups = await wrappedBack.groups({ host });
