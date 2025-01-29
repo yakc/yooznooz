@@ -47,6 +47,10 @@ export function ago(lang: string[], arg: Date, now?: Date) {
   if (hours < 30) {
     return `${hours}${nbsp}hr${nbsp}ago`;
   }
+  const days = (hours - (hours % 24)) / 24;
+  if (days <= 3) {
+    return `${days}${nbsp}dy${nbsp}ago`;
+  }
   let options: Intl.DateTimeFormatOptions;
   if (now.getFullYear() === arg.getFullYear() || hours / 24 < 90) {
     options = {
