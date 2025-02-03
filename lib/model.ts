@@ -99,11 +99,13 @@ export interface NewsOverview {
   date: Date;
   subject: string;
   references: NewsArticleID[];
+  inReplyTo?: string;
 }
 
 export interface NewsArticle extends NewsOverview {
   body: string;
   contentType?: ContentType;
+  userAgent?: string;
 }
 
 export interface NewsGroupArticle extends NewsArticle {
@@ -114,7 +116,7 @@ export function composeArticle(
   article: Article,
   group: NewsGroup,
 ): NewsGroupArticle {
-  const { id, from, date, subject, references, contentType } = article.headers;
+  const { id, from, date, subject, references, inReplyTo, userAgent, contentType } = article.headers;
   return {
     group,
     id,
@@ -122,6 +124,8 @@ export function composeArticle(
     date,
     subject,
     references,
+    inReplyTo,
+    userAgent,
     contentType,
     body: article.body,
   };

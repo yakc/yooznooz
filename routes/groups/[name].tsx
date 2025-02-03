@@ -10,6 +10,7 @@ import {
   whoFrom,
 } from "yooznooz/lib/model.ts";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
+import { bullet, nbsp } from "yooznooz/lib/format.ts";
 
 const pageSize = 100;
 
@@ -111,6 +112,8 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
         {next
           ? <a href={`?start=${direction * next}`}>{nextLabel}</a>
           : <span>None {nextLabel.toLowerCase()}</span>}
+        {nbsp}{bullet}{nbsp}
+        <a href="/servers">Home</a>
       </p>
     </div>
   );
@@ -137,6 +140,8 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
               </td>
               <td class="pl-2">{whoFrom(o.from)}</td>
               <td class="pl-2">{formatter.date(o.date)}</td>
+              <td style="text-align: right">{o.id.slice(1, o.id.indexOf('@'))}</td>
+              <td>{o.id.slice(o.id.indexOf('@') + 1, -1)}</td>
             </tr>
           ))}
         </tbody>

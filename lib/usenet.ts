@@ -59,7 +59,7 @@ type requiredHeader =
   | "Subject"
   | "Message-ID"
   | "Path";
-type optionalHeader = "References" | "Lines";
+type optionalHeader = "References" | "In-Reply-To" | "User-Agent" | "Lines";
 type headerField = requiredHeader | optionalHeader;
 
 type Parser<T> = (line: string) => T;
@@ -76,6 +76,8 @@ const headerParser: {
   "Message-ID": idParse,
   "Path": punctSplit,
   "References": commaSpaceSplit,
+  "In-Reply-To": identity,
+  "User-Agent": identity,
   "Lines": (line: string) => parseInt(line, 10),
 };
 
@@ -93,6 +95,7 @@ export interface Overview {
   date: Date;
   subject: string;
   references: string[];
+  inReplyTo?: string;
 }
 
 export interface ContentType {
@@ -106,6 +109,7 @@ export interface Headers extends Overview {
   path: string[];
   lines: number;
   contentType?: ContentType;
+  userAgent?: string;
 }
 
 export interface Article {
@@ -144,10 +148,12 @@ export function parseHeaders(msg: MessageLines): Headers {
     date: dateParse(dict["Date"]),
     subject: dict["Subject"],
     references: commaSpaceSplit(dict["References"]),
+    inReplyTo: dict["In-Reply-To"],
     newgroups: commaSpaceSplit(dict["Newsgroups"]),
     path: punctSplit(dict["Path"]),
     lines: parseInt(dict["Lines"], 10),
     contentType: contentTypeParse(dict["Content-Type"]),
+    userAgent: dict["User-Agent"],
   };
 }
 

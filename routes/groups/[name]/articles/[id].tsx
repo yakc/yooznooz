@@ -1,7 +1,7 @@
 import { FreshContext, Handlers, PageProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import { MyCookies } from "yooznooz/lib/cookies.ts";
-import { nonbreak } from "yooznooz/lib/format.ts";
+import { bullet, nbsp, nonbreak } from "yooznooz/lib/format.ts";
 import {
   collateAttachments,
   NewsArticleID,
@@ -70,6 +70,16 @@ export default function Article(props: PageProps<ArticleProps>) {
           {unRe(article.subject)} | {whoFrom(article.from)} | YoozNooz
         </title>
       </Head>
+      {article.references.length ? <span>
+        Thread {article.references.map((r, i) =>
+          <span> <a href={r}>{r == article.inReplyTo ? `^${i}^` : `<${i}]`}</a></span>
+        )}
+        {nbsp}{bullet}{nbsp}
+      </span> : ""}
+      <a href="..">Group</a>
+      {nbsp}{bullet}{nbsp}
+      <a href="/servers">Home</a>
+      <hr></hr>
       <form class="container grid gap-4 px-2 mt-1">
         <label class={lbl}>Date</label>
         <span class="col-start-2 col-span-4">
@@ -80,7 +90,7 @@ export default function Article(props: PageProps<ArticleProps>) {
         </span>
         <label class={lbl}>From</label>
         <span class={val}>
-          {whoFrom(article.from)} &lt;{article.from.email}&gt;
+          {whoFrom(article.from)} &lt;{article.from.email}&gt; {article.userAgent}
         </span>
         <label class={lbl}>Subject</label>
         <span class={val}>{article.subject}</span>
@@ -120,6 +130,7 @@ function AttachmentTable(props: AttachmentTableProps) {
           <th></th>
         </tr>
       </thead>
+      <tbody>
       {collateAttachments(props.attachments).map((a, _i) => (
         <tr>
           <td>
@@ -143,6 +154,7 @@ function AttachmentTable(props: AttachmentTableProps) {
           </td>
         </tr>
       ))}
+      </tbody>
     </table>
   );
 }

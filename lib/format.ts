@@ -1,4 +1,5 @@
 export const nbsp = "\u00a0";
+export const bullet = "\u2022";
 
 export default function format(lang: string[]) {
   return {
