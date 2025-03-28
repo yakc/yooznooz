@@ -22,14 +22,26 @@ export const handler: Handlers = {
     }
     const [origin, group] = name2Group(my, ctx);
     const id = decodeURIComponent(ctx.params.id);
+    const groupStart = groupArticleStart(ctx.url);
     const article = (await wrappedBack.article(origin, group, id)).value;
     if (!article) {
       return new Response(null, { status: 429 });
     }
-    const response = await ctx.render({ my, article });
+    const response = await ctx.render({ my, article, groupStart });
     return response;
   },
 };
+
+function groupArticleStart(url: URL) {
+  const a = url.searchParams.get("na");
+  const z = url.searchParams.get("nz");
+  if (a && z) {
+    const diff = +z - +a;
+    let n = +z - (diff >> 1);
+    n -= n % 10;
+    return n < +a ? +z : n;
+  }
+}
 
 function extDescription(ext: ArticleExt) {
   const images = ext.img || [];
@@ -53,10 +65,11 @@ function extDescription(ext: ArticleExt) {
 export interface ArticleProps {
   my: MyCookies;
   article: ExtArticle;
+  groupStart?: number;
 }
 
 export default function Article(props: PageProps<ArticleProps>) {
-  const { my, article } = props.data;
+  const { my, article, groupStart } = props.data;
   const signature = article.ext.sig || "";
   const images = article.ext.img || [];
   const attachments = article.ext.attach || [];
@@ -72,11 +85,11 @@ export default function Article(props: PageProps<ArticleProps>) {
       </Head>
       {article.references.length ? <span>
         Thread {article.references.map((r, i) =>
-          <span> <a href={r}>{r == article.inReplyTo ? `^${i}^` : `<${i}]`}</a></span>
+          <span> <a href={encodeURIComponent(r)}>{r == article.inReplyTo ? `^${i}^` : `<${i}]`}</a></span>
         )}
         {nbsp}{bullet}{nbsp}
       </span> : ""}
-      <a href="..">Group</a>
+      <a href={".." + (groupStart ? "?start=-" + groupStart : "")}>Group</a>
       {nbsp}{bullet}{nbsp}
       <a href="/servers">Home</a>
       <hr></hr>

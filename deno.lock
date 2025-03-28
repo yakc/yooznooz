@@ -966,6 +966,7 @@
     "https://esm.sh/twind@0.16.19/denonext/sheets.mjs": "26c1aabb09751f0dedf9d1419d8e2e3e5996ef9fc192f5d3160a4062937d5053",
     "https://esm.sh/twind@0.16.19/denonext/twind.mjs": "fa5076812b8d3fed2299cff30dba4344cbe58825751b429c9f0a3a70868e94bc",
     "https://esm.sh/twind@0.16.19/sheets": "92a397a7f283e14aeec25da0eb1559a8489b78d5b2b14c83be157680c67ad0bb",
+    "https://raw.githubusercontent.com/yakc/deno-nntp/4085016/nntp.ts": "66ace1cfef36bd910f764d51acbb1d0622a63cbf8ea3d7d92e64c875585276ed",
     "https://raw.githubusercontent.com/yakc/deno-nntp/4c35def/nntp.ts": "219e0a8aef25ec564fed489aadf2bdca7b6c4309b4c07e8665cc1b08f361a268",
     "https://raw.githubusercontent.com/yakc/rfc2047/v4.0.1-deno/lib/rfc2047.js": "a7694372e0b8fff53587758986c7588de9eebef2838d3eec01324492f9ac8f8f"
   },

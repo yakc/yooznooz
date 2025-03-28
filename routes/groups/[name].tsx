@@ -133,6 +133,7 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
                 <a
                   href={`${groupAtOrigin(group)}/articles/${
                     encodeURIComponent(o.id)
+                    + (o.number ? `?nz=${top.number!}&na=${o.number}` : "")
                   }`}
                 >
                   {o.subject}

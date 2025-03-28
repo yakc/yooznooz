@@ -80,7 +80,7 @@ function extArticle(article: NewsGroupArticle): ExtArticle {
   return wrap;
 }
 
-const waitMillis = 7500;
+const waitMillis = 12500;
 const codedTimeout = Object.freeze({
   code: "TIMEOUT",
   waitMillis,
