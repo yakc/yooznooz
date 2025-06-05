@@ -121,6 +121,7 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
     <>
       <Head>
         <title>{group.name} | {topNumber} to {bottomNumber} | YoozNooz</title>
+        <style>{"tr:nth-of-type(odd) { background-color:#eee; }"}</style>
       </Head>
       {inject}
       {pageNav}
@@ -141,8 +142,8 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
               </td>
               <td class="pl-2">{whoFrom(o.from)}</td>
               <td class="pl-2">{formatter.date(o.date)}</td>
-              <td style="text-align: right">{o.id.slice(1, o.id.indexOf('@'))}</td>
-              <td>{o.id.slice(o.id.indexOf('@') + 1, -1)}</td>
+              <td class="font-mono text-xs px-1" style="text-align: right">{o.id.slice(1, o.id.indexOf('@'))}</td>
+              <td class="font-mono text-xs">{o.id.slice(o.id.indexOf('@') + 1, -1)}</td>
             </tr>
           ))}
         </tbody>
