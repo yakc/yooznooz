@@ -57,7 +57,7 @@ export default {
 
     const parts: Part[] = [];
 
-    function extractPart(): Part {
+    function extractPart(boundary: string, lines: string[], i: number) : {part: Part, i: number} {
       const p: Part = {
         headers: {},
         contentType: "",
@@ -101,11 +101,13 @@ export default {
       p.lines = lines.slice(start, i);
       ++i;
 
-      return p;
+      return {part: p, i};
     }
 
     while (i < lines.length) {
-      parts.push(extractPart());
+      let part: Part;
+      ({ part, i} = extractPart(boundary, lines, i));
+      parts.push(part);
     }
 
     let text: Part;
@@ -122,6 +124,26 @@ export default {
         images.push(p);
       } else if (p.contentType.startsWith("application/")) {
         attachments.push(p);
+      } else if (p.contentType === "multipart/alternative") {
+        let altBoundary = unquoteString(p.headers["content-type"]?.extra.boundary);
+        const alts: Record<string, Part> = {};
+        if (altBoundary) {
+          altBoundary = "--" + altBoundary;
+          let part: Part;
+          i = 0;
+          while (i < p.lines.length) {
+            ({part, i} = extractPart(altBoundary, p.lines, i));
+            alts[part.contentType] = part;
+          }
+        }
+        text = alts["text/plain"];
+        if (!text) {
+          text = alts["text/html"];
+          if (!text) {
+            console.log("could not find preferred multipart/alternative among", Object.keys(alts));
+            text = p;
+          }
+        }
       } else {
         console.log(
           "unsupported multipart content",
