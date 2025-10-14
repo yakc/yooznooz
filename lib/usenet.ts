@@ -88,14 +88,21 @@ export interface From {
   name: string;
 }
 
-export interface Overview {
-  number?: number; // returned by XOVER (may be zero), but not ARTICLE
-  id: string;
+interface MinHeaders {
   from: From;
   date: Date;
   subject: string;
   references: string[];
   inReplyTo?: string;
+}
+
+export interface Overview extends MinHeaders {
+  number?: number; // returned by XOVER (may be zero), but not ARTICLE
+  id: string;
+}
+
+export interface Draft extends MinHeaders {
+  newsgroup: Newsgroup;  // not NewsGroup, which is something else
 }
 
 export interface ContentType {
@@ -114,6 +121,11 @@ export interface Headers extends Overview {
 
 export interface Article {
   headers: Headers;
+  body: string;
+}
+
+export interface Composed {
+  headers: Draft;
   body: string;
 }
 

@@ -3,6 +3,7 @@
 // This file is automatically updated during development when running `dev.ts`.
 
 import * as $_app from "./routes/_app.tsx";
+import * as $api_post_host_ from "./routes/api/post/[host].ts";
 import * as $api_servers_host_ from "./routes/api/servers/[host].ts";
 import * as $groups_name_ from "./routes/groups/[name].tsx";
 import * as $groups_name_articles_id_ from "./routes/groups/[name]/articles/[id].tsx";
@@ -16,6 +17,7 @@ import type { Manifest } from "$fresh/server.ts";
 const manifest = {
   routes: {
     "./routes/_app.tsx": $_app,
+    "./routes/api/post/[host].ts": $api_post_host_,
     "./routes/api/servers/[host].ts": $api_servers_host_,
     "./routes/groups/[name].tsx": $groups_name_,
     "./routes/groups/[name]/articles/[id].tsx": $groups_name_articles_id_,

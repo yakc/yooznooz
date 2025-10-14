@@ -164,6 +164,15 @@ class ProcBack implements NewsBack {
     }
   }
 
+  async post(origin: NewsOrigin, msg: MessageLines): Promise<boolean> {
+    const [nntp, give] = await this.#conn(origin);
+    try {
+      return await nntp.post(msg);
+    } finally {
+      give();
+    }
+  }
+
   async stop() {
     await Promise.all(
       Object.values(this.#connections).map((conn) => conn.disconnect()),

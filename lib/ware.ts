@@ -1,3 +1,4 @@
+import { MessageLines } from "nntp";
 import {
   NewsArticleID,
   NewsAttachment,
@@ -44,6 +45,8 @@ export type WrappedGroups = Wrapped<NewsGroupInfo[]>;
 export type WrappedOverview = Wrapped<ExtOverview[]>;
 
 export type WrappedArticle = Wrapped<ExtArticle | null>;
+
+export type WrappedSuccess = Wrapped<boolean>;
 
 export interface Middleware {
   overview?: (overview: ExtOverview) => void;
@@ -180,5 +183,13 @@ export class WrappedBack {
     for await (const a of this.newsBack.articles(origin, articles)) {
       yield extArticle(a);
     }
+  }
+
+  post(origin: NewsOrigin, msg: MessageLines): Promise<WrappedSuccess> {
+    return race(
+      this.newsBack.post(origin, msg),
+      (b) => `post [${msg.headers[0]}] ${b ? "succeeded" : "failed:"}`,
+      false,
+    );
   }
 }

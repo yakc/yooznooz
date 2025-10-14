@@ -1,5 +1,5 @@
 {
-  "version": "4",
+  "version": "5",
   "specifiers": {
     "jsr:@luca/esbuild-deno-loader@0.11.0": "0.11.0",
     "jsr:@std/assert@^1.0.11": "1.0.11",
@@ -969,6 +969,7 @@
     "https://raw.githubusercontent.com/yakc/deno-nntp/4085016/nntp.ts": "66ace1cfef36bd910f764d51acbb1d0622a63cbf8ea3d7d92e64c875585276ed",
     "https://raw.githubusercontent.com/yakc/deno-nntp/4c35def/nntp.ts": "219e0a8aef25ec564fed489aadf2bdca7b6c4309b4c07e8665cc1b08f361a268",
     "https://raw.githubusercontent.com/yakc/deno-nntp/a67254e/nntp.ts": "50af972d729d70e516f5e87f230a430a11a8267d6426a53cd3b752dd7b03fe8d",
+    "https://raw.githubusercontent.com/yakc/deno-nntp/b567ae2/nntp.ts": "646e0fc0d69c82c3812a9ffc0e017b07740667f8479af3ea60c074da7e1a93da",
     "https://raw.githubusercontent.com/yakc/rfc2047/v4.0.1-deno/lib/rfc2047.js": "a7694372e0b8fff53587758986c7588de9eebef2838d3eec01324492f9ac8f8f"
   },
   "workspace": {

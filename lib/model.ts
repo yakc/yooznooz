@@ -12,6 +12,7 @@ export interface NewsBack {
     articles: Iterable<[NewsGroup, NewsArticleID]>,
   ): AsyncGenerator<NewsGroupArticle>;
   raw(origin: NewsOrigin, id: NewsArticleID): Promise<MessageLines>;
+  post(origin: NewsOrigin, msg: MessageLines): Promise<boolean>;
 }
 
 export interface NewsOrigin extends NNTPOptions {
