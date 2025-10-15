@@ -8,7 +8,10 @@ import { default as windows1252 } from "./mid/windows1252.ts";
 register(windows1252);
 
 import { default as rfc2047 } from "./mid/rfc2047.ts";
-register(rfc2047);
+register(rfc2047);  // MIME encoding
+
+import { default as quoted_printable } from "./mid/quoted_printable.ts";
+register(quoted_printable);  // after MIME encoding, which also uses =HEX
 
 import { default as signature } from "./mid/signature.ts";
 register(signature);

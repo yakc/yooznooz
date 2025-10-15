@@ -25,7 +25,7 @@ const emailParse = (line: string): From => {
   return { email, name };
 };
 const dateParse = (line: string) => new Date(line);
-const contentTypeParse = (line: string): ContentType | undefined => {
+const contentTypeParse = (line: string, transferEncoding: string): ContentType | undefined => {
   if (!line) {
     return;
   }
@@ -43,7 +43,7 @@ const contentTypeParse = (line: string): ContentType | undefined => {
       return parts[1];
     }
   }).filter(identity)[0];
-  return { mime, boundary, charset };
+  return { mime, boundary, charset, transferEncoding };
 };
 
 const punctSeparator = /[ -,/:-@[-`{-~]+/; // with space, but no dot or hyphen
@@ -109,6 +109,7 @@ export interface ContentType {
   mime: string;
   boundary?: string;
   charset?: string;
+  transferEncoding?: string;
 }
 
 export interface Headers extends Overview {
@@ -164,7 +165,7 @@ export function parseHeaders(msg: MessageLines): Headers {
     newgroups: commaSpaceSplit(dict["Newsgroups"]),
     path: punctSplit(dict["Path"]),
     lines: parseInt(dict["Lines"], 10),
-    contentType: contentTypeParse(dict["Content-Type"]),
+    contentType: contentTypeParse(dict["Content-Type"], dict["Content-Transfer-Encoding"]),
     userAgent: dict["User-Agent"],
   };
 }
