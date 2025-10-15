@@ -2,6 +2,7 @@ import { FreshContext } from "$fresh/server.ts";
 import { STATUS_CODE } from "@std/http/status";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
 import { Composed, Draft } from "yooznooz/lib/usenet.ts";
+import { default as version } from "yooznooz/lib/version.ts";
 
 export interface PostResponse {
   ok: boolean;
@@ -29,11 +30,11 @@ export const handler = async (
           `Subject: ${composed.headers.subject}`,
           `From: ${composed.headers.from.name} <${composed.headers.from.email}>`,
           `Newsgroups: ${composed.headers.newsgroup}`,
-          `User-Agent: MyNNTPAgent/0.10.1`,
+          `User-Agent: YoozNooz/${version}`,
         ],
         body: composed.body.split(/\r?\n/),
       }
-      console.log("posting", msg);
+      // console.log("posting", msg);
       const success = await wrappedBack.post({host}, msg);
       if (success.value) {
         status = STATUS_CODE.Created;
