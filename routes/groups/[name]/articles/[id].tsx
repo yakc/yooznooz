@@ -108,7 +108,7 @@ export default function Article(props: PageProps<ArticleProps>) {
         <label class={lbl}>Subject</label>
         <span class={val}>{article.subject}</span>
         <pre class="col-span-6 whitespace-pre-wrap mt-3 max-w-4xl">
-          <p>{article.body.trim().split(/\b(https?:\/\/\S+)/).map((t, i) =>
+          <p>{article.body.trim().split(/\b(https?:\/\/[^\s[\]()<>"]+)/).map((t, i) =>
             i % 2 ? <a href={t} class="hover:underline" key={'link' + i}>{t}</a> : t
           )}</p>
           <p style="font-size: x-small">{signature.trim()}</p>
