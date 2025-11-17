@@ -89,7 +89,7 @@ export default function Article(props: PageProps<ArticleProps>) {
         )}
         {nbsp}{bullet}{nbsp}
       </span> : ""}
-      <a href={".." + (groupStart ? "?start=-" + groupStart : "")}>Group</a>
+      <a href={".." + (groupStart ? "?start=-" + groupStart : "")}>Group:{nbsp}{article.group.name}</a>
       {nbsp}{bullet}{nbsp}
       <a href="/servers">Home</a>
       <hr></hr>
