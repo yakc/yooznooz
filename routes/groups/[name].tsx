@@ -106,7 +106,7 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
   const pageNav = (
     <div class="px-2">
       <p>
-        {sparse && "sparse"} Articles {topNumber} to {bottomNumber}
+        {group.name}: {sparse && "sparse"} Articles {topNumber} to {bottomNumber}
       </p>
       <p>
         {next
