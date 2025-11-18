@@ -42,6 +42,7 @@ function OpButton(props: OpProps) {
   const btn = `px-1 py-1 border(gray-100 1) hover:bg-gray-200`;
   return (
     <button
+      type="button"
       class={btn}
       data-op={props.op}
       onClick={props.onClick}

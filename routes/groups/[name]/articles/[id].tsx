@@ -85,7 +85,7 @@ export default function Article(props: PageProps<ArticleProps>) {
       </Head>
       {article.references.length ? <span>
         Thread {article.references.map((r, i) =>
-          <span> <a href={encodeURIComponent(r)}>{r == article.inReplyTo ? `^${i}^` : `<${i}]`}</a></span>
+          <span key={r}> <a href={encodeURIComponent(r)}>{r == article.inReplyTo ? `^${i}^` : `<${i}]`}</a></span>
         )}
         {nbsp}{bullet}{nbsp}
       </span> : ""}
