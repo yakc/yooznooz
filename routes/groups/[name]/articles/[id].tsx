@@ -83,6 +83,8 @@ export default function Article(props: PageProps<ArticleProps>) {
           {unRe(article.subject)} | {whoFrom(article.from)} | YoozNooz
         </title>
       </Head>
+      <a href={article.id + "/reply"}>Reply</a>
+      {nbsp}{bullet}{nbsp}
       {article.references.length ? <span>
         Thread {article.references.map((r, i) =>
           <span key={r}> <a href={encodeURIComponent(r)}>{r == article.inReplyTo ? `^${i}^` : `<${i}]`}</a></span>

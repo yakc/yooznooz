@@ -8,6 +8,7 @@ import * as $api_servers_host_ from "./routes/api/servers/[host].ts";
 import * as $groups_name_ from "./routes/groups/[name].tsx";
 import * as $groups_name_articles_id_ from "./routes/groups/[name]/articles/[id].tsx";
 import * as $groups_name_articles_id_attachments_file_ from "./routes/groups/[name]/articles/[id]/attachments/[file].tsx";
+import * as $groups_name_articles_id_reply from "./routes/groups/[name]/articles/[id]/reply.tsx";
 import * as $groups_name_raw_id_ from "./routes/groups/[name]/raw/[id].tsx";
 import * as $index from "./routes/index.tsx";
 import * as $servers from "./routes/servers.tsx";
@@ -23,6 +24,8 @@ const manifest = {
     "./routes/groups/[name]/articles/[id].tsx": $groups_name_articles_id_,
     "./routes/groups/[name]/articles/[id]/attachments/[file].tsx":
       $groups_name_articles_id_attachments_file_,
+    "./routes/groups/[name]/articles/[id]/reply.tsx":
+      $groups_name_articles_id_reply,
     "./routes/groups/[name]/raw/[id].tsx": $groups_name_raw_id_,
     "./routes/index.tsx": $index,
     "./routes/servers.tsx": $servers,

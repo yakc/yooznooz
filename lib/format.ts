@@ -6,6 +6,7 @@ export default function format(lang: string[]) {
     num: num.bind(undefined, lang),
     date: date.bind(undefined, lang),
     ago: ago.bind(undefined, lang),
+    agoLongTerm: agoLongTerm.bind(undefined, lang),
   };
 }
 
@@ -65,6 +66,41 @@ export function ago(lang: string[], arg: Date, now?: Date) {
     };
   }
   const f = new Intl.DateTimeFormat(lang, options);
+  return f.format(arg).replaceAll(/\s+/g, nbsp);
+}
+
+export function agoLongTerm(lang: string[], arg: Date, now?: Date) {
+  if (!now) {
+    now = new Date();
+  }
+  const millis = now.getTime() - arg.getTime();
+  const seconds = (millis - (millis % 1000)) / 1000;
+  const minutes = (seconds - (seconds % 60)) / 60;
+  const hours = (minutes - (minutes % 60)) / 60;
+  const days = (hours - (hours % 24)) / 24;
+  if (days < 14) {
+    if (days < 10) {
+      return "";
+    } else {
+      return `${days}${nbsp}days${nbsp}ago`;
+    }
+  }
+  let weeks = (days - (days % 7)) / 7;
+  if (weeks <= 6) {
+      return `${weeks}${nbsp}weeks${nbsp}ago`;
+  }
+  const quarters = (weeks - (weeks % 13)) / 13;
+  if (quarters <= 4) {
+    weeks -= quarters * 13;
+    ++weeks;  // round up: 7 weeks is two months
+    let months = (weeks - (weeks % 4)) / 4;
+    months += quarters * 3;
+    return `${months}${nbsp}months${nbsp}ago`;
+  }
+  const f = new Intl.DateTimeFormat(lang, {
+    month: "short",
+    year: "numeric",
+  });
   return f.format(arg).replaceAll(/\s+/g, nbsp);
 }
 
