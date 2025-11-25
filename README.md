@@ -25,9 +25,7 @@ The first run will redirect to `/servers` and prompt for a news server host
 servers cannot require any authentication.
 
 Clicking `Add` will then pull the list of newsgroups there. This can be repeated
-to add more groups, but only the first server is supported for actual reading.
-Multi-server support comes later (after figuring out how to handle the same
-group in multiple servers, for example); only add one.
+to add more groups.
 
 The server list is stored in a cookie, which can be cleared in the usual ways.
 In that case, you must enter the server again. Other data is in LocalStorage, so
@@ -60,7 +58,11 @@ why. You may of course refresh manually.
 
 Click the article title to read.
 
-There is currently no navigation between articles; go Back to the list. The URL
+The article's `References` and `In-Reply-To` headers are used to show back-links
+within the thread, from the perspective of that article only. There is currently
+no attempt to make a full thread tree, which would require extra calls.
+
+Otherwise, there is no navigation between articles; go Back to the list. The URL
 to the article is a direct perma-link, and there is no extra work done to
 determine adjacent articles.
 
@@ -70,11 +72,17 @@ right.
 
 #### Posting
 
-Not yet. Maybe next.
+Posting is WIP.
+
+A Reply link at the top of the article page opens a bare-bones form, with quoted
+article content. Simple rulers are displayed above and below the `<textarea>`.
+You must enter a name and email, or the post will fail on the server. No
+client-side validation is done (other than the email control insisting that when
+not blank, that it contains at least one `@`).
 
 #### Timeout
 
-All NNTP operations must complete within a hard-coded limit of 7.5 seconds. If
+All NNTP operations must complete within a hard-coded limit of 12.5 seconds. If
 not, some kind of blank/error is returned. This was added because during early
 development, the test news server went offline. Instead of waiting 20 seconds to
 get nothing, a shorter limit is enforced. This may be configurable in the
