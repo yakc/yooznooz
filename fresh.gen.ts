@@ -9,9 +9,11 @@ import * as $groups_name_ from "./routes/groups/[name].tsx";
 import * as $groups_name_articles_id_ from "./routes/groups/[name]/articles/[id].tsx";
 import * as $groups_name_articles_id_attachments_file_ from "./routes/groups/[name]/articles/[id]/attachments/[file].tsx";
 import * as $groups_name_articles_id_reply from "./routes/groups/[name]/articles/[id]/reply.tsx";
+import * as $groups_name_articles_new from "./routes/groups/[name]/articles/new.tsx";
 import * as $groups_name_raw_id_ from "./routes/groups/[name]/raw/[id].tsx";
 import * as $index from "./routes/index.tsx";
 import * as $servers from "./routes/servers.tsx";
+import * as $Compose from "./islands/Compose.tsx";
 import * as $Groups from "./islands/Groups.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
@@ -26,11 +28,13 @@ const manifest = {
       $groups_name_articles_id_attachments_file_,
     "./routes/groups/[name]/articles/[id]/reply.tsx":
       $groups_name_articles_id_reply,
+    "./routes/groups/[name]/articles/new.tsx": $groups_name_articles_new,
     "./routes/groups/[name]/raw/[id].tsx": $groups_name_raw_id_,
     "./routes/index.tsx": $index,
     "./routes/servers.tsx": $servers,
   },
   islands: {
+    "./islands/Compose.tsx": $Compose,
     "./islands/Groups.tsx": $Groups,
   },
   baseUrl: import.meta.url,

@@ -1,5 +1,5 @@
 const major = 0;
-const minor = 12;
+const minor = 14;
 const patch = 0;
 
 export default [major, minor, patch].join(".");

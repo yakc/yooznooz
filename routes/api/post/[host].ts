@@ -168,5 +168,6 @@ async function formEncoded(req: Request, postResp: PostResponse): Promise<Compos
   function p(k: string) {
     return form.get(k)?.toString() ?? "";
   }
-  return headRefsBody(postResp, p, p("references").split(" "), p("body"));
+  const refs = p("references");
+  return headRefsBody(postResp, p, refs ? refs.split(" ") : [], p("body"));
 }

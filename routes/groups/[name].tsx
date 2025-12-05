@@ -109,6 +109,8 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
         {group.name}: {sparse && "sparse"} Articles {topNumber} to {bottomNumber}
       </p>
       <p>
+        <a href={`${group.name}@${group.origin.host}/articles/new`}>Compose New</a>
+        {nbsp}{bullet}{nbsp}
         {next
           ? <a href={`?start=${direction * next}`}>{nextLabel}</a>
           : <span>None {nextLabel.toLowerCase()}</span>}
