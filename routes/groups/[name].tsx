@@ -119,16 +119,26 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
       </p>
     </div>
   );
+  const css = `
+    tr:nth-of-type(odd) { background-color:#eee; }
+    #desk-table { display: table; }
+    #phone-table { display: none; }
+    @media only screen and (max-width: 480px) {
+      #desk-table { display: none; }
+      #phone-table { display: block; }
+      #phone-table td { display: block; width: 100%; }
+    }`;
   return (
     <>
       <Head>
         <title>{group.name} | {topNumber} to {bottomNumber} | YoozNooz</title>
-        <style>{"tr:nth-of-type(odd) { background-color:#eee; }"}</style>
+        <meta name="viewport" content="width=device-width, initial-scale=0.95"></meta>
+        <style>{css}</style>
       </Head>
       {inject}
       {pageNav}
       <hr class="my-2" />
-      <table class="mx-2">
+      <table class="mx-2" id="desk-table">
         <tbody>
           {overview.map((o) => (
             <tr>
@@ -146,6 +156,32 @@ export default function GroupMessages(props: PageProps<MessagesProps>) {
               <td class="pl-2">{formatter.date(o.date)}</td>
               <td class="font-mono text-xs px-1" style="text-align: right">{o.id.slice(1, o.id.indexOf('@'))}</td>
               <td class="font-mono text-xs">{o.id.slice(o.id.indexOf('@') + 1, -1)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <table class="mx-2" id="phone-table">
+        <tbody>
+          {overview.map((o) => (
+            <tr>
+              <td>
+                <a
+                  href={`${groupAtOrigin(group)}/articles/${
+                    encodeURIComponent(o.id)
+                    + (o.number ? `?nz=${top.number!}&na=${o.number}` : "")
+                  }`}
+                >
+                  {o.subject}
+                </a>
+              </td>
+              <td class="pr-2" style="text-align: right">
+                {whoFrom(o.from)}{nbsp}
+                {formatter.date(o.date)}
+              </td>
+              <td class="font-mono text-xs pr-2" style="text-align: right">
+                {o.id.slice(1, o.id.indexOf('@'))}{nbsp}
+                {o.id.slice(o.id.indexOf('@') + 1, -1)}
+              </td>
             </tr>
           ))}
         </tbody>
