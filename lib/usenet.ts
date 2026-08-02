@@ -40,7 +40,7 @@ const contentTypeParse = (line: string, transferEncoding: string): ContentType |
   const charset = parts.slice(1).map((p) => {
     const parts = p.split("=").map((p) => p.trim());
     if (parts[0] === "charset") {
-      return parts[1];
+      return unquoteString(parts[1]);
     }
   }).filter(identity)[0];
   return { mime, boundary, charset, transferEncoding };
