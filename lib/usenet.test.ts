@@ -1,12 +1,12 @@
 import { parseHeaders } from "./usenet.ts";
 import NNTP from "nntp";
-import { parse } from "https://deno.land/std@0.148.0/flags/mod.ts";
+import { parseArgs } from "@std/cli/parse-args";
 import {
   assert,
   assertExists,
 } from "@std/assert";
 
-const args = parse(Deno.args);
+const args = parseArgs(Deno.args);
 assertExists(args.host, "requires --host");
 assertExists(args.group, "requires --group");
 

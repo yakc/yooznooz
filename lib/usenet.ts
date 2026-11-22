@@ -1,4 +1,4 @@
-import { MessageLines, MessageOverviewRaw } from "nntp";
+import { Attachment, MessageLines, MessageOverviewRaw } from "nntp";
 import { unquoteString } from "./format.ts";
 
 const identity = <T>(x: T) => x;
@@ -128,6 +128,7 @@ export interface Article {
 export interface Composed {
   headers: Draft;
   body: string;
+  attachments?: Attachment[];
 }
 
 export function parseOverview(dict: MessageOverviewRaw): Overview {

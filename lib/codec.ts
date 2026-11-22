@@ -1,9 +1,7 @@
-import { Buffer } from "$std/node/buffer.ts";
-
 export interface Codec {
   name: string;
   estimateLengthDecoded: (enc: string) => number;
-  decode: (enc: string) => Buffer;
+  decode: (enc: string) => Uint8Array<ArrayBuffer>;
 }
 
 export const base64: Codec = {
@@ -11,8 +9,13 @@ export const base64: Codec = {
   estimateLengthDecoded: (enc: string): number => {
     return Math.ceil(enc.length * 3 / 4);
   },
-  decode: (enc: string): Buffer => {
-    return Buffer.from(enc, "base64");
+  decode: (enc: string): Uint8Array<ArrayBuffer> => {
+    const bin = atob(enc.replace(/\s+/g, ""));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) {
+      bytes[i] = bin.charCodeAt(i);
+    }
+    return bytes;
   },
 };
 
@@ -21,8 +24,12 @@ export const eightBit: Codec = {
   estimateLengthDecoded: (enc: string): number => {
     return enc.length;
   },
-  decode: (enc: string): Buffer => {
-    return Buffer.from(enc, "latin1");
+  decode: (enc: string): Uint8Array<ArrayBuffer> => {
+    const bytes = new Uint8Array(enc.length);
+    for (let i = 0; i < enc.length; i++) {
+      bytes[i] = enc.charCodeAt(i) & 0xff;
+    }
+    return bytes;
   },
 };
 

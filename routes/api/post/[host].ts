@@ -1,5 +1,6 @@
 import { FreshContext } from "$fresh/server.ts";
 import { STATUS_CODE } from "@std/http/status";
+import { Attachment, buildMimeMessage } from "nntp";
 import { default as wrappedBack } from "yooznooz/lib/proc_wrap.ts";
 import { Composed, Draft } from "yooznooz/lib/usenet.ts";
 import { default as version } from "yooznooz/lib/version.ts";
@@ -12,6 +13,36 @@ export interface PostResponse {
   invalid?: string[];
 }
 
+export function buildPostMessage(composed: Composed) {
+  const headers = [
+    // First header line displayed in activity log
+    `Subject: ${composed.headers.subject}`,
+    `From: ${composed.headers.from.name} <${composed.headers.from.email}>`,
+    `Newsgroups: ${composed.headers.newsgroup}`,
+    `User-Agent: YoozNooz/${version}`,
+  ];
+  if (composed.headers.inReplyTo) {
+    headers.push(`In-Reply-To: ${composed.headers.inReplyTo}`);
+    if (!composed.headers.references.includes(composed.headers.inReplyTo)) {
+      composed.headers.references.push(composed.headers.inReplyTo);
+    }
+  }
+  if (composed.headers.references.length) {
+    headers.push(`References: ${composed.headers.references.join(" ")}`);
+  }
+  //TODO fold header lines exceeding 998 octets as per RFC 5536 2.2
+  return composed.attachments?.length
+    ? buildMimeMessage({
+      headers,
+      text: composed.body,
+      attachments: composed.attachments,
+    })
+    : {
+      headers,
+      body: composed.body.split(/\r?\n/),
+    };
+}
+
 export const handler = async (
   req: Request,
   ctx: FreshContext,
@@ -20,32 +51,13 @@ export const handler = async (
   const [ reqStatus, composed, postResp ] = await parseRequest(req);
   let status = reqStatus;
   if (composed) {
-    if (!composed.body) {
+    if (!composed.body && !composed.attachments?.length) {
       postResp.message = "body is empty";
     } else if (postResp.ok) {
-      const msg = {
-        //TODO fold header lines exceeding 998 octets as per RFC 5536 2.2
-        headers: [
-          // First header line displayed in activity log
-          `Subject: ${composed.headers.subject}`,
-          `From: ${composed.headers.from.name} <${composed.headers.from.email}>`,
-          `Newsgroups: ${composed.headers.newsgroup}`,
-          `User-Agent: YoozNooz/${version}`,
-        ],
-        body: composed.body.split(/\r?\n/),
-      }
-      if (composed.headers.inReplyTo) {
-        msg.headers.push(`In-Reply-To: ${composed.headers.inReplyTo}`);
-        if (!composed.headers.references.includes(composed.headers.inReplyTo)) {
-          composed.headers.references.push(composed.headers.inReplyTo);
-        }
-      }
-      if (composed.headers.references.length) {
-        msg.headers.push(`References: ${composed.headers.references.join(' ')}`);
-      }
+      const msg = buildPostMessage(composed);
       // console.log("posting", msg);
       // const success = { value: true, err: undefined };
-      const success = await wrappedBack.post({host}, msg);
+      const success = await wrappedBack.post({ host }, msg);
       if (!success.value) {
         status = STATUS_CODE.InternalServerError;
         postResp.ok = false;
@@ -68,7 +80,7 @@ export const handler = async (
   });
 };
 
-async function parseRequest(req: Request): Promise<[number, Composed | undefined, PostResponse]> {
+export async function parseRequest(req: Request): Promise<[number, Composed | undefined, PostResponse]> {
   let status: number = STATUS_CODE.BadRequest;
   let composed: Composed | undefined;
   const postResp: PostResponse = { ok: false };
@@ -82,6 +94,7 @@ async function parseRequest(req: Request): Promise<[number, Composed | undefined
         }
         break;
       case "application/x-www-form-urlencoded":
+      case "multipart/form-data":
         composed = await formEncoded(req, postResp);
         if (postResp.ok) {
           status = STATUS_CODE.SeeOther;
@@ -144,13 +157,20 @@ function extractHeaders(postResp: PostResponse, p: (k: string) => string | null)
   return [ok, headers];
 }
 
-function headRefsBody(postResp: PostResponse, p: (k: string) => string | null, refs: string[], body: string): Composed {
+function headRefsBody(
+  postResp: PostResponse,
+  p: (k: string) => string | null,
+  refs: string[],
+  body: string,
+  attachments?: Attachment[],
+): Composed {
   const [ok, headers] = extractHeaders(postResp, p);
   headers.references = refs;
-  postResp.ok = ok && !!body;
+  postResp.ok = ok && (!!body || !!attachments?.length);
   return {
     headers,
     body,
+    ...(attachments?.length ? { attachments } : {}),
   };
 }
 
@@ -166,8 +186,19 @@ async function formEncoded(req: Request, postResp: PostResponse): Promise<Compos
   const form = await req.formData();
   // console.log(form);
   function p(k: string) {
-    return form.get(k)?.toString() ?? "";
+    const v = form.get(k);
+    return typeof v === "string" ? v : "";
+  }
+  const attachments: Attachment[] = [];
+  for (const entry of form.getAll("attachments")) {
+    if (entry instanceof File && (entry.size > 0 || entry.name)) {
+      attachments.push({
+        filename: entry.name || "attachment",
+        contentType: entry.type || undefined,
+        data: new Uint8Array(await entry.arrayBuffer()),
+      });
+    }
   }
   const refs = p("references");
-  return headRefsBody(postResp, p, refs ? refs.split(" ") : [], p("body"));
+  return headRefsBody(postResp, p, refs ? refs.split(" ") : [], p("body"), attachments);
 }
